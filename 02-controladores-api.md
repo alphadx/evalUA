@@ -163,6 +163,7 @@ Content-Type: application/json
 Calcula la nota definitiva, persiste en MongoDB y elimina el borrador transitorio de Redis. Solo se puede invocar desde la pantalla de Resumen y Confirmación (con la evaluación en estado `EN_REVISION`).
 ```http
 POST /api/evaluaciones/{id}/calcular
+Idempotency-Key: "uuid-v4-generado-por-cliente"
 ```
 - **Backend (Flujo de Consolidación):**
   1. Lee el borrador desde Redis: `GET draft:{id}`. Si no existe, retorna `400 Bad Request`.
@@ -185,7 +186,7 @@ POST /api/evaluaciones/{id}/calcular
   7. Escribe el documento en la colección `evaluaciones` de MongoDB.
   8. Elimina el borrador en memoria: `DEL draft:{id}`.
 - **Response 200:** Retorna el resultado del cálculo y el estado consolidado.
-- **Response 409 (Conflicto):** Si el documento de evaluación ya existía en la colección `evaluaciones` de MongoDB (evita doble consolidación).
+- **Response 409 (Conflicto):** Si la `Idempotency-Key` ya fue procesada, o si el documento de evaluación ya existía en la colección `evaluaciones` de MongoDB con estado `COMPLETADA` (evita doble consolidación y condiciones de carrera gestionado por Mongoose OCC).
 
 ---
 

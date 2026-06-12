@@ -39,6 +39,9 @@ EvalUA v3.0 utiliza una arquitectura de datos híbrida NoSQL:
 classDiagram
     class Rubrica {
         +string _id
+        +string rubricaGroupId
+        +number version
+        +string parentRubricaId
         +string titulo
         +boolean esActiva
         +Object metadata
@@ -125,12 +128,15 @@ const CriterioSchema = new Schema({
 });
 
 const RubricaSchema = new Schema({
-  _id: { type: String, required: true }, // Asignado en dominio (UUID)
+  _id: { type: String, required: true }, // Asignado en dominio (UUID de la versión)
+  rubricaGroupId: { type: String, required: true, index: true }, // Identificador lógico de la rúbrica (agrupa versiones)
+  version: { type: Number, default: 1, required: true }, // Número de versión (Document Versioning Pattern)
+  parentRubricaId: { type: String, default: null }, // ID de la versión anterior
   titulo: { type: String, required: true },
   esActiva: { type: Boolean, default: true, index: true },
   metadata: { type: Schema.Types.Mixed, default: null },
   criterios: [CriterioSchema] // Embebido (Agregado DDD)
-}, { timestamps: true });
+}, { timestamps: true, optimisticConcurrency: true }); // optimisticConcurrency para evitar colisiones (OCC)
 ```
 
 ---
@@ -146,13 +152,13 @@ const PuntajeSchema = new Schema({
 
 const EvaluacionSchema = new Schema({
   _id: { type: String, required: true }, // Asignado por el Host o autogenerado
-  rubricaId: { type: String, ref: 'Rubrica', required: true, index: true }, // Referencia por String UUID
+  rubricaId: { type: String, ref: 'Rubrica', required: true, index: true }, // Referencia por String UUID a la versión específica de la rúbrica
   estado: { type: String, enum: ["COMPLETADA"], default: "COMPLETADA" },
   notaFinal: { type: Number, required: true },
   observaciones: { type: String, default: null },
   metadata: { type: Schema.Types.Mixed, default: null },
   puntajes: [PuntajeSchema] // Embebido (Agregado DDD)
-}, { timestamps: true });
+}, { timestamps: true, optimisticConcurrency: true }); // Control de concurrencia optimista (OCC)
 ```
 
 ---

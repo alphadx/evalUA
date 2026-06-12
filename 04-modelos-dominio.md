@@ -98,6 +98,9 @@ class Rubrica {
 
   constructor(
     public readonly id: RubricaId,
+    public readonly rubricaGroupId: string,
+    public readonly version: number,
+    public readonly parentRubricaId: RubricaId | null,
     public titulo: string,
     public esActiva: boolean,
     public metadata: Record<string, unknown> | null,
@@ -106,8 +109,12 @@ class Rubrica {
   ) {}
 
   static create(params: { titulo: string; metadata?: Record<string, unknown> }): Rubrica {
+    const id = crypto.randomUUID();
     return new Rubrica(
-      crypto.randomUUID() as RubricaId,
+      id as RubricaId,
+      id, // rubricaGroupId inicial es igual a su propio id
+      1, // version 1
+      null, // sin padre
       params.titulo,
       true,
       params.metadata || null,
@@ -138,10 +145,18 @@ class Rubrica {
   }
 
   clonarParaNuevaVersion(nuevoTitulo?: string): Rubrica {
-    const clon = Rubrica.create({
-      titulo: nuevoTitulo || this.titulo,
-      metadata: this.metadata ? { ...this.metadata } : undefined
-    });
+    const nuevoId = crypto.randomUUID() as RubricaId;
+    const clon = new Rubrica(
+      nuevoId,
+      this.rubricaGroupId,
+      this.version + 1,
+      this.id,
+      nuevoTitulo || this.titulo,
+      true,
+      this.metadata ? { ...this.metadata } : null,
+      new Date(),
+      new Date()
+    );
     const nuevosCriterios = this._criterios.map(c => c.clonar(clon.id));
     clon.establecerCriterios(nuevosCriterios);
     return clon;
@@ -388,8 +403,8 @@ El ciclo de vida de la entidad `Evaluacion` está regido por una Máquina de Est
 *   **Reglas de Transición:**
     1.  **`EN_PROGRESO` $\rightarrow$ `EN_REVISION`:** Se activa automáticamente en el frontend cuando se han calificado todos los criterios. Se registra el cambio de estado en Redis.
     2.  **`EN_REVISION` $\rightarrow$ `EN_PROGRESO`:** Si el evaluador decide modificar cualquier puntaje desde la pantalla de resumen, el estado retorna a `EN_PROGRESO`.
-    3.  **`EN_REVISION` $\rightarrow$ `COMPLETADA`:** Al accionar "Finalizar Evaluación", el backend calcula la nota definitiva, persiste el registro de forma inmutable en MongoDB, borra el borrador de Redis y despacha el evento al Host.
-    4.  **Bloqueo de Modificación:** Toda llamada HTTP que intente mutar una evaluación con estado `COMPLETADA` es interceptada y rechazada con un código de estado `409 Conflict`.
+    3.  **`EN_REVISION` $\rightarrow$ `COMPLETADA`:** Al accionar "Finalizar Evaluación", el backend calcula la nota definitiva y persiste el registro de forma inmutable en MongoDB. Esta petición debe incluir una cabecera `Idempotency-Key` (generada en el cliente) para evitar doble consolidación concurrente.
+    4.  **Bloqueo de Modificación:** Toda llamada HTTP que intente mutar o recalcular una evaluación con estado `COMPLETADA` es rechazada por el backend con un `409 Conflict`. Además, el Control de Concurrencia Optimista (OCC) previene condiciones de carrera a nivel de base de datos.
 
 ---
 
