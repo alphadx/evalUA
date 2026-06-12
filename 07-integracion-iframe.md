@@ -114,12 +114,18 @@ GET /embed/rubricas?jwt={rubricaToken}
   "aud": "evalua-microservice",
   "id_plataforma": "PLATAFORMA_evalUA_XYZ",
   "rol": "MANTENEDOR",                   // Rol: MANTENEDOR o ADMINISTRADOR
-  "usuario_id": "mantenedor.garcia",
-  "puede_ver_rubricas_ajenas": false,    // Determina si puede editar/ver rúbricas de otros
+  "usuario_id": "mantenedor.garcia",     // Opcional para trazabilidad
+  "rubricas_permitidas": [               // Arreglo de UUIDs que el mantenedor puede ver/editar
+    "uuid-rubrica-1",
+    "uuid-rubrica-2"
+  ],
   "iat": 1780000000,
   "exp": 1780000300
 }
 ```
+
+> [!NOTE]
+> **Comodín Global:** El Host puede enviar `["*"]` en el arreglo de `rubricas_permitidas` si desea otorgar al mantenedor acceso irrestricto a todas las rúbricas de la plataforma. El rol `ADMINISTRADOR` no requiere este claim, pues tiene acceso total por defecto.
 
 ---
 

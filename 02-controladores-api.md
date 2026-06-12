@@ -24,7 +24,7 @@ Todas las APIs de rúbricas requieren verificación de firma JWT simétrica y es
 GET /api/rubricas?esActiva=true
 ```
 - **Backend:** Retorna el listado general de rúbricas consultando la colección `rubricas` de MongoDB.
-- **Filtro de Seguridad:** Si el claim `puede_ver_rubricas_ajenas` es `false`, filtra el listado para incluir únicamente las rúbricas donde el campo `usuario_id` en la metadata coincida con el `usuario_id` del token JWT. Si es `true` (o si el rol es `ADMINISTRADOR`), retorna todas las rúbricas de la plataforma.
+- **Filtro de Seguridad:** Para el rol `MANTENEDOR`, filtra el listado internamente utilizando el arreglo proporcionado en el claim `rubricas_permitidas` (`{ _id: { $in: jwt.rubricas_permitidas } }`). Si el arreglo contiene el comodín `["*"]` o el rol es `ADMINISTRADOR`, retorna todas las rúbricas de la plataforma sin filtrado.
 
 ### GET /api/rubricas/[id]
 ```http
@@ -34,7 +34,7 @@ GET /api/rubricas/{id}
   1. Busca en Redis: `GET cache:rubrica:{id}`.
   2. Si hay **HIT**: Deserializa el JSON y retorna de inmediato.
   3. Si hay **MISS**: Consulta en la colección `rubricas` de MongoDB. Guarda el resultado en Redis: `SET cache:rubrica:{id} {JSON} EX 86400` (24 horas) y retorna.
-- **Filtro de Seguridad:** Valida los permisos de lectura si `puede_ver_rubricas_ajenas` es `false`, comprobando que la rúbrica pertenezca al `usuario_id` del token.
+- **Filtro de Seguridad:** Valida que el `{id}` solicitado se encuentre listado explícitamente en el arreglo `rubricas_permitidas` del JWT (o que el usuario posea el comodín `"*"` o rol `ADMINISTRADOR`). De lo contrario, retorna HTTP `403 Forbidden`.
 
 ### POST /api/rubricas
 ```http
@@ -49,14 +49,14 @@ Content-Type: application/json
 PUT /api/rubricas/{id}
 Content-Type: application/json
 ```
-- **Backend:** Valida que el `usuario_id` del token coincida con el dueño original de la rúbrica (o que el usuario posea el rol `ADMINISTRADOR`). Guarda modificaciones en MongoDB (o crea una nueva versión de la rúbrica con UUID e incrementando el número de versión si posee evaluaciones previas en MongoDB).
+- **Backend:** Valida que el `{id}` solicitado se encuentre en el arreglo `rubricas_permitidas` del JWT (o que el usuario posea el comodín `"*"` o rol `ADMINISTRADOR`). Guarda modificaciones en MongoDB (o crea una nueva versión de la rúbrica con UUID e incrementando el número de versión si posee evaluaciones previas en MongoDB).
 - **Acción Redis:** Ejecuta `DEL cache:rubrica:{id}` para invalidar la caché L2.
 
 ### DELETE /api/rubricas/[id]
 ```http
 DELETE /api/rubricas/{id}
 ```
-- **Backend:** Valida que el `usuario_id` del token coincida con el dueño original de la rúbrica (o que el usuario posea el rol `ADMINISTRADOR`). Elimina de MongoDB (si no tiene evaluaciones asociadas en la colección `evaluaciones`).
+- **Backend:** Valida que el `{id}` solicitado se encuentre en el arreglo `rubricas_permitidas` del JWT (o que posea el comodín `"*"` o rol `ADMINISTRADOR`). Elimina de MongoDB (si no tiene evaluaciones asociadas en la colección `evaluaciones`).
 - **Acción Redis:** Ejecuta `DEL cache:rubrica:{id}`.
 
 ---
@@ -79,7 +79,7 @@ Content-Type: application/json
 | `rol` en JWT | Modos permitidos | Descripción |
 |---|---|---|
 | `ADMINISTRADOR` | `dashboard`, `rubricas`, `configurar`, `evaluar`, `resultado` | Acceso total: métricas, CRUD de rúbricas, configuración del sistema, evaluación y visualización de resultados. |
-| `MANTENEDOR` | `dashboard`, `rubricas`, `evaluar`, `resultado` | Acceso a métricas, CRUD de rúbricas (propias o ajenas según claim `puede_ver_rubricas_ajenas`), evaluación y resultados. |
+| `MANTENEDOR` | `dashboard`, `rubricas`, `evaluar`, `resultado` | Acceso a métricas, CRUD de rúbricas según el arreglo de UUIDs proveído en `rubricas_permitidas`, evaluación y resultados. |
 | `PROFESOR` | `evaluar`, `resultado` | Puede evaluar con una rúbrica y ver resultados de evaluaciones. |
 | `ALUMNO` | `resultado` | Solo puede ver el resultado de sus propias evaluaciones en modo lectura. |
 
