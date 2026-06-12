@@ -1,0 +1,61 @@
+# ============================================
+# EvalUA v3.0 — Docker Compose
+# ============================================
+# Servicios: app (Next.js), mongodb, redis
+# Uso: docker compose up --build
+
+services:
+  evalua-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: evalua-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://evalua-mongodb:27017/evalua
+      - REDIS_URL=redis://evalua-redis:6379
+      - KEY=${KEY:-evalua-dev-secret-key-256bits-minimum-aaaabbbbcccc}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-http://localhost:3000}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+    depends_on:
+      evalua-mongodb:
+        condition: service_started
+      evalua-redis:
+        condition: service_started
+    networks:
+      - evalua-network
+
+  evalua-mongodb:
+    image: mongo:7
+    container_name: evalua-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - evalua-network
+
+  evalua-redis:
+    image: redis:7-alpine
+    container_name: evalua-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - evalua-network
+
+volumes:
+  mongodb-data:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  evalua-network:
+    driver: bridge
