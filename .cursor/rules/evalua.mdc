@@ -1,0 +1,58 @@
+---
+description: Reglas globales para desarrollo con EvalUA v3.0
+globs: **/*.ts, **/*.tsx
+alwaysApply: true
+---
+
+# EvalUA v3.0 — Reglas de Desarrollo LLM
+
+## Stack
+- Next.js 16 (App Router) + TypeScript 5 + Mongoose 8 (MongoDB) + Redis (ioredis)
+- Zustand 5 + shadcn/ui + Framer Motion
+- Docker Compose (3 servicios: app, mongodb, redis)
+
+## Arquitectura DDD Documental
+- Agregados = documentos MongoDB únicos (Rubrica, Evaluacion)
+- Criterios/descriptores embebidos en Rubrica
+- Puntajes embebidos en Evaluacion
+- NO usar referencias ObjectId entre agregados
+- Capas: domain → application → infrastructure → presentation
+
+## Zero-Knowledge Policy
+- NUNCA crear colección de "usuarios"
+- Toda autorización viene del JWT del Host (HS256)
+- El claim `usuario_id` es opaco, no un email
+- Filtrar TODAS las consultas por `id_plataforma`
+
+## Iframe-Driven
+- Todas las vistas en iframe de 1029×466px
+- Scroll local con ScrollArea de shadcn/ui
+- NUNCA scroll global del documento
+- Framer Motion para transiciones del wizard
+
+## Naming
+- Archivos: kebab-case
+- Componentes: PascalCase
+- Variables/funciones: camelCase
+- Constantes: SCREAMING_SNAKE_CASE
+- Enums como `as const` objects
+
+## Validación y Errores
+- Zod para TODOS los inputs
+- Errores API en formato RFC 7807
+- NUNCA exponer stack traces
+
+## Reglas de Negocio Clave
+- Suma ponderaciones rúbrica = 1.0 (±0.001)
+- Escala notas: 1.0 a 7.0, aprobación en 4.0
+- Gatekeeper: criterio excluyente < 4.0 → nota = 1.0
+- Evaluación COMPLETADA es inmutable
+- Borradores en Redis (TTL 30 días), consolidados en MongoDB
+
+## Paleta de Colores
+- Primario: #EA7600 (naranja)
+- Texto: #394049 (gris carbón)
+- Seleccionado: #9DD4D3 (celeste turquesa)
+- Peligro: #C8102E (rojo)
+- Fondo: #fffefd (blanco cálido)
+- Éxito: #198754 (verde)

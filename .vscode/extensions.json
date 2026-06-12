@@ -1,0 +1,16 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "bradlc.vscode-tailwindcss",
+    "ms-vscode.vscode-typescript-next",
+    "mongodb.mongodb-vscode",
+    "humao.rest-client",
+    "gherking.gherkin-lsp",
+    "streetsidesoftware.code-spell-checker",
+    "usernamehw.errorlens",
+    "christian-kohler.path-intellisense",
+    "ms-vscode.test-adapter-converter",
+    "vitest.explorer"
+  ]
+}

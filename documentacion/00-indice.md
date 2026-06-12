@@ -2,8 +2,8 @@
 
 ## Sistema de Evaluación Curricular por Rúbricas Autocontenido (Micro-frontend NoSQL)
 
-**Versión:** 3.0  
-**Fecha:** Junio 2026  
+**Versión:** 3.0
+**Fecha:** Junio 2026
 **Arquitectura:** DDD (Domain-Driven Design) con Next.js 16 + Mongoose + MongoDB + Redis + Contenedor Docker + Modo Iframe Embebido (Zero-Knowledge)
 
 ---
@@ -23,6 +23,7 @@
 | 09 | [Planificación](./09-planificacion.md) | Plan de desarrollo detallado para EvalUA v3.0, roles de proyecto y ruta crítica. |
 | 10 | [Matriz de Riesgo](./10-matriz-riesgo.md) | Matriz de riesgo detallada por actividad del plan Gantt. |
 | 11 | [Plan de Mitigación de Riesgos de Diseño](./11-plan-riesgo.md) | Definición de riesgos de diseño, causas raíz y plan de trabajo con tareas específicas para su resolución. |
+| 13 | [Entorno de Desarrollo LLM](./13-entorno-desarrollo-llm.md) | Configuración completa del entorno de desarrollo asistido por LLMs: reglas, skills, hooks, agentes, MCP gateway y compatibilidad multi-editor. |
 
 ---
 
