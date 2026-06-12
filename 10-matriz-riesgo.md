@@ -93,5 +93,21 @@ La matriz usa una estrategia de mitigación por capas:
 5. **Protección de datos:** cumplimiento Zero-Knowledge, ausencia de PII, retención de borradores por TTL y control de acceso a evaluaciones. 
 6. **Experiencia embebida:** pruebas visuales y funcionales dentro del viewport fijo 1029×466, con scroll local y sin scroll global. 
 7. **Integración Host/Iframe:** contrato `postMessage`, harness representativo, matriz rol/modo y pruebas end-to-end.
-8. **Preparación productiva:** runbooks, backups, monitoreo, release candidate, smoke test y rollback ensayado.
+9. **Preparación productiva:** runbooks, backups, monitoreo, release candidate, smoke test y rollback ensayado.
 
+## Impacto de la Fase de Diseño (Actualización)
+
+Con la reciente ejecución y consolidación del **Plan de Trabajo para la Mitigación de Riesgos de Diseño (`11-plan-riesgo.md`)**, la matriz de riesgos ha sido impactada positivamente antes de iniciar el desarrollo intensivo.
+
+Los principales riesgos críticos y altos arquitectónicos han pasado de un estado de "riesgo latente" a **"mitigado en diseño"** (`[x] Completado`), lo que asegura que la probabilidad de ocurrencia (P) disminuya drásticamente hacia los niveles residuales esperados. Las resoluciones alcanzadas son:
+
+*   **R-2.1 (Entidades DDD):** Mitigado mediante el modelado formal de agregados, la fijación del algoritmo de notas y el diseño de la matriz de pruebas de límite.
+*   **R-2.3 (Redis TTL/cache):** Mitigado definiendo estrategias de nombres, TTLs estrictos y el mecanismo de invalidación en base a hooks de Mongoose.
+*   **R-3.1 (JWT, claims y roles):** Mitigado al definir formalmente la Matriz de Acceso Zero-Knowledge, los claims necesarios y el flujo del middleware en Next.js.
+*   **R-4.1 (CRUD rúbricas):** Mitigado implementando un modelo de inmutabilidad (Document Versioning Pattern) para proteger evaluaciones históricas.
+*   **R-4.3 (Cálculo final):** Mitigado diseñando una máquina de estados para la evaluación y un flujo transaccional atómico que evita la concurrencia.
+*   **R-5.1 (Desajustes visuales iframe):** Incorporado y mitigado estableciendo un viewport estricto (1029x466) y políticas de *overflow* controlado.
+*   **R-7.1 (postMessage):** Mitigado mediante contratos de tipos comunes y validaciones rígidas de origen (`origin`).
+*   **R-8.3 (Seguridad / Privacidad):** Mitigado garantizando una arquitectura libre de PII (Personally Identifiable Information) y el hardening de cabeceras HTTP.
+
+*Nota: Otros riesgos operativos y de implementación listados (ej. R-5.4 Auto-save y R-9.4 Producción) abordarán sus respectivas mitigaciones durante sus correspondientes fases de desarrollo front-end y despliegue.*
