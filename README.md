@@ -137,7 +137,7 @@ Este proyecto está pensado para ejecutarse en contenedores. Ejemplo básico:
 
 ## Licencia
 
-Revisa el archivo LICENSE incluido en el repositorio. Añade la licencia correcta si procede.
+Derechos reservados a ID3.cl
 
 ---
 
