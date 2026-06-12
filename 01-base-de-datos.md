@@ -260,3 +260,40 @@ stateDiagram-v2
         persistencia en MongoDB.
     end note
 ```
+
+---
+
+## 7. Estrategias de Caché y Consistencia (R-2.3)
+
+Para evitar que los iframes muestren versiones desactualizadas de rúbricas, y paralelamente no sobrecargar la base de datos documental en los lanzamientos simultáneos (e.g. un profesor inicia la evaluación de 40 alumnos casi al mismo tiempo), se aplica una política estricta de control de caché Redis.
+
+### 7.1 Lógica de Invalidación (Mongoose Hooks)
+
+Para mantener la consistencia entre MongoDB y Redis, se utilizan eventos nativos del ORM de persistencia. Cualquier modificación de una rúbrica activa (como una actualización desde el panel de mantenedor) purgará la caché L2 proactivamente:
+
+```typescript
+RubricaSchema.post('save', async function(doc) {
+  // Cuando se guarda una nueva versión o se actualiza
+  const redisClient = getRedisClient();
+  await redisClient.del(`cache:rubrica:${doc._id}`);
+});
+
+RubricaSchema.post('findOneAndUpdate', async function(doc) {
+  if (doc) {
+    const redisClient = getRedisClient();
+    await redisClient.del(`cache:rubrica:${doc._id}`);
+  }
+});
+```
+
+### 7.2 Diseño de Fallback de Lectura (Cache-Aside Pattern)
+
+Para garantizar la disponibilidad en caso de que Redis sufra caídas temporales, o que la llave haya sido invalidada (Cache MISS), la lógica de lectura dentro de los Controladores / Acciones implementa el patrón de Resiliencia **Cache-Aside**:
+
+1. **Lectura Intento 1:** Solicitar a Redis `GET cache:rubrica:{rubricaId}`.
+2. **Cache HIT:** Si existe, parsear JSON y retornar respuesta HTTP 200 inmediatamente.
+3. **Cache MISS / Timeout Redis:** 
+   - Se realiza una consulta asincrónica a MongoDB (`RubricaModel.findById`).
+   - Una vez obtenidos los datos frescos, se retorna la respuesta HTTP 200 al cliente.
+   - En paralelo (fondo), se repuebla Redis ejecutando `SET cache:rubrica:{rubricaId} <datos_json> EX 86400`.
+4. **Resiliencia:** Si el servicio de Redis se encuentra desconectado temporalmente, la falla es silenciosa a nivel del backend. Todas las lecturas y escrituras caen directamente a MongoDB (fallback).

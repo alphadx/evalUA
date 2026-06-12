@@ -133,4 +133,33 @@ const rubricas = await RubricaModel.find(query);
 
 > [!WARNING]
 > **Límites de Tamaño del Token JWT:** Los tokens JWT tienen un límite práctico de tamaño en los navegadores y cabeceras HTTP (se recomienda no superar los 4KB a 8KB). Si un mantenedor tiene acceso a *miles* de rúbricas específicas, el Host no debe enviar miles de UUIDs en el payload del token. En ese escenario, el Host debe utilizar una política de acceso global (`["*"]`) para el micro-frontend y realizar el filtrado de negocio exhaustivo en su propia plataforma padre. Otra alternativa es que el Host solo lance a EvalUA para visualizar métricas generales o evaluar/editar rúbricas de forma individualizada (1 a 1), evitando que el iframe sea el responsable de listar miles de rúbricas con permisos granulares extensos.
-```
+
+---
+
+## 6. Hardening de Cabeceras de Seguridad (OWASP & PbD)
+
+Para mitigar los riesgos de *Clickjacking*, *Cross-Site Scripting* (XSS) e inyección de datos (Riesgo R-8.3), el middleware de Next.js inyectará cabeceras HTTP estrictas en todas las respuestas del servidor. 
+
+### 6.1 Content-Security-Policy (CSP)
+La política de seguridad de contenido se configurará dinámicamente en función del dominio del Host (`ENV.ALLOWED_HOSTS`).
+*   `frame-ancestors`: Restringe qué dominios pueden embeber la aplicación en un `<iframe*>`. Se limitará estrictamente al dominio de la plataforma Host validada.
+*   `default-src 'self'`: Impide la carga de recursos de terceros no autorizados.
+*   `script-src 'self' 'unsafe-inline'`: (Requerido por Next.js para hidratación, pero bloqueando dominios externos).
+
+### 6.2 Cabeceras Adicionales
+*   `X-Frame-Options: ALLOW-FROM https://host.com`: Cabecera *legacy* para soportar navegadores antiguos, redundante con `frame-ancestors`.
+*   `X-Content-Type-Options: nosniff`: Previene ataques de *MIME-sniffing*.
+*   `Strict-Transport-Security (HSTS)`: Obliga a todas las conexiones a usar HTTPS, con directivas `max-age=31536000; includeSubDomains`.
+
+---
+
+## 7. Sanitización de Logs de Auditoría (Zero-Knowledge)
+
+En concordancia con el principio de Privacidad por Diseño (ISO 31700) y mitigación de fugas (R-8.3), el sistema debe asegurar que no se almacene PII o información sensible (como tokens JWT) en texto plano dentro de los archivos de log o consolas en la nube (ej. Datadog, AWS CloudWatch).
+
+### 7.1 Estrategia de Redacción
+Se utilizará un logger estructurado (como **Pino.js**) configurado con reglas estrictas de redacción (`redact`):
+*   **Tokens y Cabeceras:** Se enmascarará por completo la cabecera `Authorization` y el query parameter `token`.
+*   **Identificadores Temporales:** Se utilizarán *hashes* unidireccionales (SHA-256) si fuese absolutamente necesario loguear una traza asociada a un `usuario_id` sin revelar su valor real a los operadores.
+*   **Cuerpos de Petición (Payloads):** No se logueará el contenido de las respuestas HTTP ni los cuerpos de los POST, excepto en entornos de desarrollo local explícitamente configurados. Solo se loguearán las URL, métodos, códigos de estado y tiempos de respuesta.
+
