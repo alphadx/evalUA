@@ -183,8 +183,11 @@ Redis opera como almacén temporal, persistencia de borradores de auto-guardado 
     "evaluacionId": "uuid-evaluacion-123",
     "rubricaId": "uuid-rubrica-456",
     "estado": "EN_PROGRESO", // "EN_PROGRESO" o "EN_REVISION"
-    "usuarioId": "evaluador.id",
     "observaciones": "Avances preliminares del proyecto...",
+    "metadata": {
+      "usuarioId": "evaluador.id",
+      "origen": "LMS-Host"
+    },
     "puntajes": [
       { "criterioId": "uuid-crit-1", "notaAsignada": 6.0, "observaciones": "Modularización adecuada" },
       { "criterioId": "uuid-crit-2", "notaAsignada": 5.2, "observaciones": null }
