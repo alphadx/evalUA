@@ -38,10 +38,19 @@ El iframe cargado por el Host posee dimensiones físicas fijas. La aplicación i
 
 | Dimensión | Límite Externo | Viewport Interno de Visualización |
 |---|---|---|
-| Ancho | `1029px` | `1029px` |
-| Alto | `466px` | `466px` |
-| Desplazamiento raíz | Bloqueado (`overflow-hidden`) | Bloqueado (`overflow-hidden`) |
-| Desplazamiento interno | `ScrollArea` local | `ScrollArea` local |
+| Ancho | `1029px` | `1029px` (Max-width) |
+| Alto | `466px` | `466px` (Max-height) |
+| Desplazamiento raíz | Bloqueado (`overflow: hidden`) | Bloqueado (`overflow: hidden`) en el `<body>` y `<main>` |
+| Desplazamiento interno | `ScrollArea` local | `ScrollArea` local (`overflow-y: auto`) solo en listas |
+
+#### Control del Overflow y Modales Inline (Mitigación R-5.1)
+Para evitar scrollbars dobles y recortes visuales indeseados:
+1. **CSS Reset Estricto:** El `layout.tsx` raíz define `w-[1029px] h-[466px] overflow-hidden m-0 p-0` de forma estricta.
+2. **Scroll Local:** Solo los paneles de contenido dinámico (como la lista de rúbricas o el historial de criterios) implementan contenedores con `overflow-y: auto` y scrollbars estilizados y compactos.
+3. **Modales Confinados:** Se prohíbe el uso de ventanas modales (`<Dialog>`, `<Popover>`) que utilicen `React Portals` hacia el `body` sin restricciones de z-index o posicionamiento absoluto referenciado al viewport total de la pantalla. Todos los diálogos, tooltips y selectores desplegables están confinados en línea (inline) dentro de los límites del contenedor principal de 1029x466px para evitar que queden ocultos por el recorte del iframe.
+
+#### Pruebas de Regresión Visual Automáticas
+Como medida del estado del arte para garantizar la integridad de la interfaz, el pipeline de CI/CD incorpora pruebas de regresión visual (VRT) utilizando **Playwright** y **Percy**. Esto asegura que las dimensiones fijas y la visualización de los componentes no sufran desajustes accidentales (R-5.1).
 
 ---
 

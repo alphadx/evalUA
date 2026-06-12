@@ -204,21 +204,34 @@ Esta optimización protege la base documental de MongoDB de sobrecargas de lectu
 
 Todos los mensajes transmitidos desde el iframe hacia el Host utilizan el canal estándar `Window.parent.postMessage`.
 
-### Envelope Base
+### Envelope Base (Zod / TypeScript)
+Para asegurar que los payloads sean confiables y seguros en tiempo de ejecución, EvalUA valida los mensajes entrantes utilizando la librería `zod`. El Host debe adherirse al siguiente esquema:
+
 ```typescript
-interface EvaluaHostMessage {
-  source: "evalua";
-  version: "3.0";
-  type: 
-    | "evalua.ready" 
-    | "evalua.evaluation.reviewing" 
-    | "evalua.evaluation.completed" 
-    | "evalua.rubrica.created"
-    | "evalua.config.updated"
-    | "evalua.error";
-  payload: Record<string, unknown>;
-}
+import { z } from "zod";
+
+export const EvaluaHostMessageSchema = z.object({
+  source: z.literal("evalua"),
+  version: z.literal("3.0"),
+  type: z.enum([
+    "evalua.ready",
+    "evalua.evaluation.reviewing",
+    "evalua.evaluation.completed",
+    "evalua.rubrica.created",
+    "evalua.config.updated",
+    "evalua.error"
+  ]),
+  payload: z.record(z.unknown()),
+});
+
+export type EvaluaHostMessage = z.infer<typeof EvaluaHostMessageSchema>;
 ```
+
+### Mecanismo de Handshake y Seguridad (Mitigación R-7.1)
+El intercambio de eventos entre el Iframe y el Host sigue un mecanismo estricto de seguridad:
+1. **Handshake de Inicialización:** Al cargar, el iframe no permite interacción hasta no enviar el evento `evalua.ready` y, de ser necesario, recibir un mensaje de confirmación del Host. Esto garantiza que la comunicación bidireccional está establecida antes de mostrar datos sensibles.
+2. **Validación de Origen Estricta (`origin`):** Los listeners de `message` implementados en el Iframe verifican que `event.origin` coincida exactamente con la URL configurada del sistema Host. Cualquier mensaje proveniente de un dominio no autorizado es ignorado silenciosamente para prevenir ataques de inyección.
+3. **Validación de Tipos en Tiempo de Ejecución:** Todo mensaje recibido es parseado mediante `EvaluaHostMessageSchema.safeParse()`. Los mensajes malformados son descartados.
 
 ### Eventos Emitidos por EvalUA
 
