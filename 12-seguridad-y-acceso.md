@@ -98,6 +98,39 @@ EvalUA estandariza las respuestas de error para que el cliente frontend y el Hos
   "status": 403,
   "detail": "El rol 'MANTENEDOR' no posee los permisos necesarios en 'rubricas_permitidas' para este UUID.",
   "code": "AUTH_INSUFFICIENT_PERMISSIONS",
-  "resource": "uuid-rubrica-3"
 }
+}
+
+---
+
+## 5. Consultas de Listado y Paginación (Zero-Knowledge)
+
+Debido a que el microservicio no conoce la relación de pertenencia entre "Usuarios" y "Rúbricas" en la base de datos (no existe un campo `usuario_id` en el esquema de la rúbrica), las consultas de listado (por ejemplo, para renderizar la tabla principal de administración en `/embed/rubricas`) se filtran dinámicamente utilizando exclusivamente los claims del JWT.
+
+### 5.1 Regla del Comodín Global (`["*"]`)
+
+Si el JWT del `MANTENEDOR` o `ADMINISTRADOR` contiene `["*"]` en el claim `rubricas_permitidas` (o si el rol de Administrador asume acceso total por defecto), el repositorio del backend ejecutará una consulta sin filtro de IDs, devolviendo todas las rúbricas activas correspondientes al tenant:
+
+```typescript
+// Ejemplo conceptual de consulta en Mongoose/MongoDB
+const query = { id_plataforma: jwt.id_plataforma, esActiva: true };
+const rubricas = await RubricaModel.find(query);
+```
+
+### 5.2 Regla de Arreglo de IDs Específicos
+
+Si el JWT especifica un arreglo de UUIDs, la consulta de listado utilizará el operador `$in` de MongoDB en la capa del repositorio para limitar los resultados únicamente a las rúbricas sobre las que el mantenedor tiene jurisdicción explícita. El Host es quien tiene el conocimiento de negocio y define este arreglo al generar y firmar el JWT.
+
+```typescript
+// Ejemplo conceptual de consulta en Mongoose/MongoDB
+const query = { 
+  id_plataforma: jwt.id_plataforma, 
+  esActiva: true,
+  _id: { $in: jwt.rubricas_permitidas } // Filtrado inyectado directo desde el JWT
+};
+const rubricas = await RubricaModel.find(query);
+```
+
+> [!WARNING]
+> **Límites de Tamaño del Token JWT:** Los tokens JWT tienen un límite práctico de tamaño en los navegadores y cabeceras HTTP (se recomienda no superar los 4KB a 8KB). Si un mantenedor tiene acceso a *miles* de rúbricas específicas, el Host no debe enviar miles de UUIDs en el payload del token. En ese escenario, el Host debe utilizar una política de acceso global (`["*"]`) para el micro-frontend y realizar el filtrado de negocio exhaustivo en su propia plataforma padre. Otra alternativa es que el Host solo lance a EvalUA para visualizar métricas generales o evaluar/editar rúbricas de forma individualizada (1 a 1), evitando que el iframe sea el responsable de listar miles de rúbricas con permisos granulares extensos.
 ```

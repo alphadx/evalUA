@@ -34,7 +34,7 @@ El dominio de EvalUA se desacopla del modelo relacional plano mediante el uso de
 
 ### ADR-02: Integración Desacoplada y Firma Simétrica (Zero-Knowledge Completo)
 - **Contexto:** La integración del micro-frontend con el Host debe ser segura, no comprometer la privacidad estudiantil, y eliminar cualquier gestión de identidad dentro de EvalUA.
-- **Decisión:** EvalUA no almacena ninguna identidad humana (ni de alumnos, ni de profesores, ni de administradores). No existe colección `usuarios`. Toda validación de permisos se delega a la verificación de claims del JWT firmado simétricamente (`rol`, `puede_ver_rubricas_ajenas`). El claim `usuario_id` se utiliza exclusivamente para trazabilidad interna (quién creó una rúbrica, quién realizó una evaluación).
+- **Decisión:** EvalUA no almacena ninguna identidad humana (ni de alumnos, ni de profesores, ni de administradores). No existe colección `usuarios`. Toda validación de permisos se delega a la verificación de claims del JWT firmado simétricamente (`rol`, `rubricas_permitidas`). El claim `usuario_id` se utiliza exclusivamente para trazabilidad interna (quién creó una rúbrica, quién realizó una evaluación).
 - **Consecuencias Positivas:**
   - Zero-Knowledge completo: EvalUA no expone información de ninguna persona en caso de intrusiones de datos.
   - Eliminación de la gestión de usuarios, contraseñas y sesiones dentro del micro-frontend.

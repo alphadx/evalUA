@@ -218,7 +218,7 @@ Para autorizar el acceso a las vistas embebidas en el iframe, el Host debe emiti
 | `usuario_id` | string | No | Identificador del usuario para trazabilidad interna (quién creó/modificó/evaluó) |
 | `rubrica_id` | string | Condicional | Requerido para modo `evaluar`. UUID de la rúbrica a utilizar. |
 | `evaluacion_id` | string | Condicional | Requerido para modos `resultado` y `evaluar` (si se retoma un borrador). |
-| `puede_ver_rubricas_ajenas` | boolean | No | Si es `true`, el mantenedor puede ver rúbricas creadas por otros mantenedores. Por defecto `false`. |
+| `rubricas_permitidas` | string[] | Condicional | Requerido para MANTENEDOR. Arreglo de UUIDs de rúbricas permitidas o `["*"]` para acceso total. |
 | `iss` | string | Sí | Emisor del token (identificación del Host). |
 | `aud` | string | Sí | Audiencia: `"evalua-microservice"`. |
 | `exp` | number | Sí | Expiración del token (5 minutos recomendados para lanzamiento). |
