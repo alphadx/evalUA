@@ -20,6 +20,9 @@
 | 06 | [Gobierno de Datos](./06-gobierno-de-datos.md) | Políticas de privacidad "zero-knowledge", ciclo de vida de borradores por TTL en Redis y clasificación de datos por sensibilidad. |
 | 07 | [Integración Host/Iframe y APIs](./07-integracion-iframe.md) | Protocolo de integración mediante JWT de lanzamiento simétrico (`KEY`), eventos de UI por `postMessage` e inyección/consulta de resultados optimizados por caché Redis. |
 | 08 | [Arquitectura SaaS y Estándares](./08-arquitectura-saas-y-estandares.md) | ADRs de empaquetamiento Docker, base de datos documental MongoDB, persistencia de borradores en Redis (TTL), arquitectura iframe-driven y paleta de colores corporativos. |
+| 09 | [Planificación](./09-planificacion.md) | Plan de desarrollo detallado para EvalUA v3.0, roles de proyecto y ruta crítica. |
+| 10 | [Matriz de Riesgo](./10-matriz-riesgo.md) | Matriz de riesgo detallada por actividad del plan Gantt. |
+| 11 | [Plan de Mitigación de Riesgos de Diseño](./11-plan-riesgo.md) | Definición de riesgos de diseño, causas raíz y plan de trabajo con tareas específicas para su resolución. |
 
 ---
 
@@ -44,6 +47,11 @@
 - `01-base-de-datos.md` — Colecciones MongoDB, índices, llaves y estructuras de almacenamiento.
 - `08-arquitectura-saas-y-estandares.md` — Configuración de Docker Stack / Docker Compose y variables de entorno.
 - `06-gobierno-de-datos.md` — Gobierno de datos NoSQL y retención por TTL.
+
+### PM / Jefe de Proyecto / Tech Lead
+- `09-planificacion.md` — Plan de desarrollo detallado, carta Gantt resumida y ruta crítica.
+- `10-matriz-riesgo.md` — Matriz de riesgos detallada para las actividades del plan.
+- `11-plan-riesgo.md` — Plan de trabajo y tareas específicas para mitigar riesgos de diseño.
 
 ---
 
