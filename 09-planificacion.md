@@ -9,7 +9,9 @@ A continuación propongo un **plan de desarrollo detallado para EvalUA v3.0**, p
 **Hito de cierre/estabilización:** 18 de septiembre de 2026.
 **Modalidad:** desarrollo incremental con frentes paralelos de backend, frontend, integración Host/Iframe, QA y DevOps.
 
-El plan considera que EvalUA no tendrá consola independiente ni usuarios locales, sino vistas embebidas accedidas por JWT y controladas por roles desde el Host; esto impacta directamente las actividades de seguridad, permisos, pruebas por rol y validación de integración iframe. 
+El plan considera que EvalUA no tendrá consola independiente ni usuarios locales, sino vistas embebidas accedidas por JWT y controladas por roles desde el Host; esto impacta directamente las actividades de seguridad, permisos, pruebas por rol y validación de integración iframe.
+
+**Impacto de la Mitigación de Riesgos de Diseño:** Dado que el *Plan de Trabajo para la Mitigación de Riesgos de Diseño* (`11-plan-riesgo.md`) y la `10-matriz-riesgo.md` ya resolvieron preventivamente las definiciones arquitectónicas más complejas (modelos DDD inmutables, matriz de acceso Zero-Knowledge, viewport estricto, estrategias TTL en Redis y transaccionalidad), las fases tempranas de este proyecto (Arquitectura, Dominio y Seguridad) entran directamente a una **fase de codificación y ejecución**, reduciendo significativamente la incertidumbre, el esfuerzo de diseño y la probabilidad de retrasos iniciales.
 
 ---
 
@@ -61,15 +63,15 @@ Esta tabla puede copiarse a Excel, MS Project, ProjectLibre, Smartsheet, Jira Ad
 | 0.1  | Inicio                  | Kick-off, alcance, riesgos y criterios de éxito                                 |   2 días | 2026-06-15 | 2026-06-16 | —                  | PM / PO / TL               |
 | 0.2  | Inicio                  | Refinamiento de backlog HU-03 a HU-11 y matriz de trazabilidad                  |   3 días | 2026-06-15 | 2026-06-17 | —                  | PO / BA / QA               |
 | 0.3  | Inicio                  | Definición de DoR/DoD, estrategia de pruebas y ambientes                        |   2 días | 2026-06-18 | 2026-06-19 | 0.2                | PM / QA Lead / DevOps      |
-| 1.1  | Arquitectura            | Validación de ADRs, decisiones DDD/NoSQL y modelo de integración                |   3 días | 2026-06-18 | 2026-06-22 | 0.2                | Arquitecto / TL            |
+| 1.1  | Arquitectura            | Implementación técnica de ADRs, diseño DDD/NoSQL y modelo Zero-Knowledge ya definidos           |   3 días | 2026-06-18 | 2026-06-22 | 0.2                | Arquitecto / TL            |
 | 1.2  | Arquitectura            | Inicialización repositorio Next.js 16 + TypeScript + shadcn/ui + Zustand        |   3 días | 2026-06-23 | 2026-06-25 | 1.1                | Frontend / TL              |
 | 1.3  | Arquitectura            | Docker Compose: `evalua-app`, MongoDB, Redis y variables de entorno             |   4 días | 2026-06-23 | 2026-06-26 | 1.1                | DevOps / DBA               |
 | 1.4  | Arquitectura            | CI/CD base: lint, typecheck, tests, build y gestión de secretos                 |   3 días | 2026-06-29 | 2026-07-01 | 1.2, 1.3           | DevOps / TL                |
-| 2.1  | Dominio y datos         | Entidades DDD: Rubrica, Criterio, Descriptor, Evaluacion, Nota                  |   4 días | 2026-06-26 | 2026-07-01 | 1.2                | Backend / TL               |
+| 2.1  | Dominio y datos         | Codificación de Entidades DDD pre-modeladas: Rubrica inmutable, Evaluacion (FSM)                |   4 días | 2026-06-26 | 2026-07-01 | 1.2                | Backend / TL               |
 | 2.2  | Dominio y datos         | Esquemas Mongoose, repositorios MongoDB e índices                               |   4 días | 2026-07-02 | 2026-07-07 | 2.1, 1.3           | Backend / DBA              |
 | 2.3  | Dominio y datos         | Cliente Redis: `draft:{id}`, `cache:rubrica:{id}`, TTL e invalidación           |   3 días | 2026-06-29 | 2026-07-01 | 1.3                | Backend / DevOps           |
 | 2.4  | Dominio y datos         | Seeds de configuración, datos de prueba y validación de persistencia            |   3 días | 2026-07-08 | 2026-07-10 | 2.2, 2.3           | Backend / QA               |
-| 3.1  | Seguridad e integración | Middleware JWT HS256, claims, roles y permisos por modo                         |   4 días | 2026-07-02 | 2026-07-07 | 1.4                | Backend / Seguridad        |
+| 3.1  | Seguridad e integración | Codificación de Middleware JWT HS256 basado en Matriz Zero-Knowledge aprobada                   |   4 días | 2026-07-02 | 2026-07-07 | 1.4                | Backend / Seguridad        |
 | 3.2  | Seguridad e integración | Endpoint `/api/embed/launch` y resolución de modo autorizado                    |   3 días | 2026-07-08 | 2026-07-10 | 3.1, 2.3           | Backend                    |
 | 3.3  | Seguridad e integración | Cabeceras CSP/frame-ancestors, errores 401/403 y hardening iframe               |   2 días | 2026-07-08 | 2026-07-09 | 3.1                | Backend / Seguridad        |
 | 4.1  | Backend API             | APIs CRUD de rúbricas con ownership, cache L2 y versionamiento                  |   6 días | 2026-07-13 | 2026-07-20 | 2.4, 3.1           | Backend                    |
@@ -88,7 +90,7 @@ Esta tabla puede copiarse a Excel, MS Project, ProjectLibre, Smartsheet, Jira Ad
 | 6.3  | Vistas admin/resultados | Dashboard de métricas e historial compacto                                      |   3 días | 2026-07-27 | 2026-07-29 | 5.2, 4.4           | Frontend                   |
 | 6.4  | Vistas admin/resultados | Panel de configuración y manejo de 403                                          |   3 días | 2026-07-27 | 2026-07-29 | 5.2, 4.4           | Frontend                   |
 | 6.5  | Vistas admin/resultados | Integración y pruebas funcionales de vistas administrativas                     |   3 días | 2026-07-30 | 2026-08-03 | 6.1, 6.2, 6.3, 6.4 | QA / Frontend              |
-| 7.1  | Integración Host        | Eventos postMessage: ready, reviewing, completed, rubrica/config/error          |   3 días | 2026-07-31 | 2026-08-04 | 5.5, 6.2           | Frontend / Integrador Host |
+| 7.1  | Integración Host        | Implementación de contrato estricto postMessage y validación de origin pre-definida             |   3 días | 2026-07-31 | 2026-08-04 | 5.5, 6.2           | Frontend / Integrador Host |
 | 7.2  | Integración Host        | Harness de Host: generación JWT, iframe 1029×466 y listeners                    |   4 días | 2026-08-05 | 2026-08-10 | 7.1, 3.2           | Integrador Host / QA       |
 | 7.3  | Integración Host        | Pruebas end-to-end Host/Iframe por rol y modo                                   |   4 días | 2026-08-11 | 2026-08-14 | 7.2, 6.5           | QA / Integrador Host       |
 | 8.1  | Calidad                 | Pruebas unitarias dominio, store y componentes críticos                         |   5 días | 2026-07-21 | 2026-07-27 | 2.1, 5.3           | QA / Devs                  |
