@@ -1,0 +1,27 @@
+{
+    "name": "evalua/demo-host",
+    "description": "evalUA v3.0 — Yii2 Demo Host Application",
+    "type": "project",
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=8.1",
+        "yiisoft/yii2": "~2.0.49",
+        "yidas/yii2-bower-asset": "^2.0",
+        "firebase/php-jwt": "^6.11"
+    },
+    "config": {
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true
+        },
+        "policy": {
+            "advisories": {
+                "block": false
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "app\\": ""
+        }
+    }
+}

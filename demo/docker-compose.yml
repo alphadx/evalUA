@@ -1,0 +1,77 @@
+# ============================================
+# evalUA Demo — Docker Compose
+# Yii2 Host + evalUA v3.0 Microservice
+# ============================================
+
+services:
+  # --- evalUA Microservice (Next.js) ---
+  evalua-app:
+    build:
+      context: ../v3
+      dockerfile: Dockerfile
+    container_name: evalua-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://evalua-mongodb:27017/evalua
+      - REDIS_URL=redis://evalua-redis:6379
+      - KEY=${JWT_SECRET:-evalua-dev-secret-key-256bits-minimum-aaaabbbbcccc}
+      - ID_PLATAFORMA=${ID_PLATAFORMA:-PLATAFORMA_demo_evalUA}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-http://localhost:8080}
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    depends_on:
+      evalua-mongodb:
+        condition: service_started
+      evalua-redis:
+        condition: service_started
+    networks:
+      - evalua-network
+
+  evalua-mongodb:
+    image: mongo:7
+    container_name: evalua-mongodb
+    restart: unless-stopped
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - evalua-network
+
+  evalua-redis:
+    image: redis:7-alpine
+    container_name: evalua-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - evalua-network
+
+  # --- Demo Yii2 Host Application ---
+  demo-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: evalua-demo
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      - EVALUA_URL=http://evalua-app:3000
+      - EVALUA_BROWSER_URL=http://localhost:3000
+      - JWT_SECRET=${JWT_SECRET:-evalua-dev-secret-key-256bits-minimum-aaaabbbbcccc}
+      - ID_PLATAFORMA=${ID_PLATAFORMA:-PLATAFORMA_demo_evalUA}
+    depends_on:
+      - evalua-app
+    networks:
+      - evalua-network
+
+volumes:
+  mongodb-data:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  evalua-network:
+    driver: bridge

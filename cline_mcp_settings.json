@@ -1,0 +1,38 @@
+{
+  "mcpServers": {
+    "github-official": {
+      "image": "ghcr.io/github/github-mcp-server@sha256:a9dd39eec67f09ded51631c79641dd72acb4945c6391df47824fa2d508b5431b",
+      "tools": 41,
+      "prompts": 2,
+      "resourceTemplates": 5,
+      "status": "running"
+    },
+    "playwright": {
+      "image": "mcp/playwright@sha256:012da75cc907a4d49c80aacb22200adca1b4d275fb2ab009f8f6814e0b8ea8fa",
+      "tools": 21,
+      "status": "running"
+    },
+    "database-server": {
+      "image": "souhardyak/mcp-db-server@sha256:21ed32e622092ac9c3803a35ecd81327acabb135cfff845ba63b730cb428056d",
+      "tools": 12,
+      "resources": 2,
+      "status": "running"
+    },
+    "llmtxt": {
+      "status": "failed",
+      "error": "dial tcp: lookup mcp.llmtxt.dev: no such host"
+    }
+  },
+  "gateway": {
+    "transport": "sse",
+    "port": 8089,
+    "url": "http://localhost:8089/sse",
+    "token": "u9wmquyruds66b13rv7wdl7enp7znmzr2c1m5de6qay5uo2jfa"
+  },
+  "summary": {
+    "totalServers": 315,
+    "enabledServers": ["database-server", "github-official", "llmtxt", "playwright"],
+    "toolsListed": 74,
+    "initTimeSeconds": 15.61
+  }
+}
