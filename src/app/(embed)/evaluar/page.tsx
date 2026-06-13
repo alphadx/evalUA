@@ -14,6 +14,65 @@ import { Nota } from "@/domain/value-objects/nota";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
 
+/** Rúbrica de demostración hardcodeada para modo demo */
+const DEMO_RUBRICA: RubricaData = {
+  _id: "demo",
+  titulo: "Rúbrica de Demostración",
+  criterios: [
+    {
+      _id: "demo-c1",
+      nombre: "Contenido",
+      ponderacion: 0.5,
+      tipo: "ESTRUCTURAL",
+      esExcluyente: false,
+      descripcion: "Evalúa la calidad y profundidad del contenido presentado.",
+      descriptores: [
+        { notaNivel: 7, etiqueta: "Excelente", bulletPoints: ["Contenido completo y exhaustivo", "Análisis profundo y bien fundamentado", "Fuentes confiables y actualizadas"] },
+        { notaNivel: 6, etiqueta: "Muy Bueno", bulletPoints: ["Contenido completo con buen análisis", "Fundamentación sólida"] },
+        { notaNivel: 5, etiqueta: "Bueno", bulletPoints: ["Contenido adecuado", "Análisis razonable"] },
+        { notaNivel: 4, etiqueta: "Suficiente", bulletPoints: ["Contenido básico cumple requisitos mínimos", "Análisis superficial"] },
+        { notaNivel: 3, etiqueta: "Insuficiente", bulletPoints: ["Contenido incompleto", "Falta de fundamentación"] },
+        { notaNivel: 2, etiqueta: "Deficiente", bulletPoints: ["Contenido muy escaso", "Sin análisis claro"] },
+        { notaNivel: 1, etiqueta: "Nulo", bulletPoints: ["Sin contenido relevante"] },
+      ],
+    },
+    {
+      _id: "demo-c2",
+      nombre: "Redacción",
+      ponderacion: 0.3,
+      tipo: "ESTRUCTURAL",
+      esExcluyente: false,
+      descripcion: "Evalúa la claridad, coherencia y ortografía del texto.",
+      descriptores: [
+        { notaNivel: 7, etiqueta: "Excelente", bulletPoints: ["Redacción impecable", "Fluidez y coherencia total", "Sin errores ortográficos"] },
+        { notaNivel: 6, etiqueta: "Muy Bueno", bulletPoints: ["Redacción clara y fluida", "Mínimos errores"] },
+        { notaNivel: 5, etiqueta: "Bueno", bulletPoints: ["Redacción aceptable", "Algunos errores menores"] },
+        { notaNivel: 4, etiqueta: "Suficiente", bulletPoints: ["Redacción comprensible", "Varios errores ortográficos"] },
+        { notaNivel: 3, etiqueta: "Insuficiente", bulletPoints: ["Redacción confusa", "Errores frecuentes"] },
+        { notaNivel: 2, etiqueta: "Deficiente", bulletPoints: ["Redacción difícil de entender", "Muchos errores"] },
+        { notaNivel: 1, etiqueta: "Nulo", bulletPoints: ["Redacción incomprensible"] },
+      ],
+    },
+    {
+      _id: "demo-c3",
+      nombre: "Presentación",
+      ponderacion: 0.2,
+      tipo: "COMPLEMENTARIO",
+      esExcluyente: false,
+      descripcion: "Evalúa el formato, diseño visual y organización del documento.",
+      descriptores: [
+        { notaNivel: 7, etiqueta: "Excelente", bulletPoints: ["Diseño profesional", "Estructura impecable", "Uso adecuado de imágenes y gráficos"] },
+        { notaNivel: 6, etiqueta: "Muy Bueno", bulletPoints: ["Buen diseño y estructura", "Elementos visuales bien integrados"] },
+        { notaNivel: 5, etiqueta: "Bueno", bulletPoints: ["Diseño aceptable", "Estructura clara"] },
+        { notaNivel: 4, etiqueta: "Suficiente", bulletPoints: ["Diseño básico", "Estructura simple pero funcional"] },
+        { notaNivel: 3, etiqueta: "Insuficiente", bulletPoints: ["Diseño descuidado", "Estructura confusa"] },
+        { notaNivel: 2, etiqueta: "Deficiente", bulletPoints: ["Sin formato claro", "Desorganizado"] },
+        { notaNivel: 1, etiqueta: "Nulo", bulletPoints: ["Sin presentación"] },
+      ],
+    },
+  ],
+};
+
 interface RubricaData {
   _id: string;
   titulo: string;
@@ -73,6 +132,21 @@ export default function EvaluarPage() {
 
         if (!token && !rubricaId) {
           setError("Se requiere token JWT o rubricaId para iniciar evaluación");
+          setLoading(false);
+          return;
+        }
+
+        // Modo demo: usar rúbrica hardcodeada
+        if (rubricaId === "demo") {
+          setRubrica(DEMO_RUBRICA);
+          const demoDraft: DraftData = {
+            evaluacionId: "demo-eval-" + Date.now(),
+            rubricaId: "demo",
+            estado: "EN_PROGRESO",
+            observaciones: null,
+            puntajes: [],
+          };
+          setDraft(demoDraft);
           setLoading(false);
           return;
         }
@@ -183,6 +257,10 @@ export default function EvaluarPage() {
       estado?: string
     ) => {
       if (!draft) return;
+      // En modo demo, skip API calls
+      if (draft.evaluacionId.startsWith("demo-eval-")) {
+        return;
+      }
       setSavingDraft(true);
       try {
         await fetch(`/api/evaluaciones/${draft.evaluacionId}`, {
