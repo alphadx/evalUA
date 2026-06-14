@@ -27,6 +27,7 @@ const CriterioSchema = new Schema(
       default: "ESTRUCTURAL",
     },
     esExcluyente: { type: Boolean, default: false },
+    notaCorte: { type: Number, default: 4.0, min: 1.0, max: 7.0 },
     descripcion: { type: String, default: null },
     minPalabras: { type: Number, default: null },
     maxPalabras: { type: Number, default: null },
@@ -44,6 +45,7 @@ const RubricaSchema = new Schema(
     version: { type: Number, default: 1, required: true },
     parentRubricaId: { type: String, default: null },
     titulo: { type: String, required: true },
+    notaAprobacion: { type: Number, default: 4.0, min: 1.0, max: 7.0 },
     esActiva: { type: Boolean, default: true, index: true },
     metadata: { type: Schema.Types.Mixed, default: null },
     criterios: [CriterioSchema],
@@ -61,6 +63,7 @@ export interface IRubricaDocument {
   version: number;
   parentRubricaId: string | null;
   titulo: string;
+  notaAprobacion: number;
   esActiva: boolean;
   metadata: Record<string, unknown> | null;
   criterios: Array<{
@@ -69,6 +72,7 @@ export interface IRubricaDocument {
     ponderacion: number;
     tipo: "ESTRUCTURAL" | "COMPLEMENTARIO";
     esExcluyente: boolean;
+    notaCorte: number;
     descripcion: string | null;
     minPalabras: number | null;
     maxPalabras: number | null;

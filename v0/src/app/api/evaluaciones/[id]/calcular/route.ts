@@ -74,6 +74,7 @@ export async function POST(
           c.ponderacion as number,
           c.tipo as "ESTRUCTURAL" | "COMPLEMENTARIO",
           c.esExcluyente as boolean,
+          (c.notaCorte as number) ?? 4.0,
           (c.descripcion as string) || null,
           (c.minPalabras as number) || null,
           (c.maxPalabras as number) || null,
@@ -137,9 +138,10 @@ export async function POST(
       observaciones: draft.observaciones || null,
       metadata: {
         reglaAplicada: puntajes.some(
-          (p) =>
-            criterios.find((c) => c.id === p.criterioId)?.esExcluyente &&
-            p.notaAsignada.valor < 4.0
+          (p) => {
+            const crit = criterios.find((c) => c.id === p.criterioId);
+            return crit?.esExcluyente && p.notaAsignada.valor < crit.notaCorte;
+          }
         )
           ? "GATEKEEPER"
           : "NORMAL",

@@ -13,6 +13,7 @@ export class Criterio {
     public ponderacion: number,
     public tipo: TipoCriterio,
     public esExcluyente: boolean,
+    public notaCorte: number,
     public descripcion: string | null,
     public minPalabras: number | null,
     public maxPalabras: number | null,
@@ -27,6 +28,7 @@ export class Criterio {
       this.ponderacion,
       this.tipo,
       this.esExcluyente,
+      this.notaCorte,
       this.descripcion,
       this.minPalabras,
       this.maxPalabras,
@@ -41,6 +43,7 @@ export class Criterio {
     ponderacion: number;
     tipo?: TipoCriterio;
     esExcluyente?: boolean;
+    notaCorte?: number;
     descripcion?: string | null;
     minPalabras?: number | null;
     maxPalabras?: number | null;
@@ -56,6 +59,7 @@ export class Criterio {
       params.ponderacion,
       params.tipo || "ESTRUCTURAL",
       params.esExcluyente || false,
+      params.notaCorte ?? 4.0,
       params.descripcion || null,
       params.minPalabras || null,
       params.maxPalabras || null,

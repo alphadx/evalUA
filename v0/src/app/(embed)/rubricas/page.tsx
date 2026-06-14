@@ -12,6 +12,7 @@ import { v4 as uuid } from "uuid";
 interface RubricaItem {
   _id: string;
   titulo: string;
+  notaAprobacion: number;
   version: number;
   esActiva: boolean;
   criterios: Array<{
@@ -20,6 +21,7 @@ interface RubricaItem {
     ponderacion: number;
     tipo: string;
     esExcluyente: boolean;
+    notaCorte: number;
     descripcion: string | null;
     descriptores: Array<{ notaNivel: number; etiqueta: string; bulletPoints: string[] }>;
   }>;
@@ -53,8 +55,9 @@ export default function RubricasPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [titulo, setTitulo] = useState("");
+  const [notaAprobacion, setNotaAprobacion] = useState(4.0);
   const [criterios, setCriterios] = useState<Array<{
-    id: string; nombre: string; ponderacion: number; tipo: string; esExcluyente: boolean; descripcion: string;
+    id: string; nombre: string; ponderacion: number; tipo: string; esExcluyente: boolean; notaCorte: number; descripcion: string;
     descriptores: Array<{ notaNivel: number; etiqueta: string; bulletPoints: string[] }>;
   }>>([]);
   const [editandoId, setEditandoId] = useState<string | null>(null);
@@ -78,8 +81,9 @@ export default function RubricasPage() {
   const handleCrear = () => {
     setVista("crear");
     setTitulo("");
+    setNotaAprobacion(4.0);
     setCriterios([{
-      id: uuid(), nombre: "", ponderacion: 1.0, tipo: "ESTRUCTURAL", esExcluyente: false, descripcion: "",
+      id: uuid(), nombre: "", ponderacion: 1.0, tipo: "ESTRUCTURAL", esExcluyente: false, notaCorte: 4.0, descripcion: "",
       descriptores: crearDescriptoresDefault(),
     }]);
     setCriterioExpandido(null);
@@ -89,9 +93,10 @@ export default function RubricasPage() {
     setVista("editar");
     setEditandoId(rubrica._id);
     setTitulo(rubrica.titulo);
+    setNotaAprobacion(rubrica.notaAprobacion ?? 4.0);
     setCriterios(rubrica.criterios.map(c => ({
       id: c._id, nombre: c.nombre, ponderacion: c.ponderacion, tipo: c.tipo,
-      esExcluyente: c.esExcluyente, descripcion: c.descripcion || "",
+      esExcluyente: c.esExcluyente, notaCorte: c.notaCorte ?? 4.0, descripcion: c.descripcion || "",
       descriptores: c.descriptores.length >= 7 ? c.descriptores : crearDescriptoresDefault(),
     })));
     setCriterioExpandido(null);
@@ -126,12 +131,14 @@ export default function RubricasPage() {
 
     const body = {
       titulo,
+      notaAprobacion,
       criterios: criterios.map(c => ({
         id: c.id,
         nombre: c.nombre,
         ponderacion: c.ponderacion,
         tipo: c.tipo,
         esExcluyente: c.esExcluyente,
+        notaCorte: c.notaCorte,
         descripcion: c.descripcion || null,
         descriptores: c.descriptores,
       })),
@@ -233,6 +240,26 @@ export default function RubricasPage() {
                   placeholder="Ej: Proyecto de Ingeniería de Software"
                 />
               </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-semibold text-[rgba(57,64,73,0.65)]" htmlFor="nota-aprobacion">
+                    Nota de Aprobación
+                  </label>
+                  <input
+                    id="nota-aprobacion"
+                    className="embed-input"
+                    type="number"
+                    step="0.1"
+                    min="1.0"
+                    max="7.0"
+                    value={notaAprobacion}
+                    onChange={(e) => setNotaAprobacion(parseFloat(e.target.value) || 4.0)}
+                  />
+                  <p className="text-[10px]" style={{ color: "rgba(57,64,73,0.45)" }}>
+                    Nota mínima para aprobar la evaluación (1.0–7.0)
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -255,12 +282,13 @@ export default function RubricasPage() {
                       setCriterios([
                         ...criterios,
                         {
-                          id: newId,
-                          nombre: "",
-                          ponderacion: 0,
-                          tipo: "ESTRUCTURAL",
-                          esExcluyente: false,
-                          descripcion: "",
+                      id: newId,
+                      nombre: "",
+                      ponderacion: 0,
+                      tipo: "ESTRUCTURAL",
+                      esExcluyente: false,
+                      notaCorte: 4.0,
+                      descripcion: "",
                           descriptores: crearDescriptoresDefault(),
                         },
                       ]);
@@ -352,13 +380,55 @@ export default function RubricasPage() {
                           </div>
                         </div>
 
+                        {/* Excluyente + Nota de corte */}
+                        <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] items-end">
+                          <div className="space-y-2">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={crit.esExcluyente}
+                                onChange={(e) => {
+                                  const n = [...criterios];
+                                  n[idx].esExcluyente = e.target.checked;
+                                  setCriterios(n);
+                                }}
+                                className="w-4 h-4"
+                              />
+                              <span className="text-[10px] font-semibold text-[rgba(57,64,73,0.65)]">
+                                Criterio excluyente (Gatekeeper)
+                              </span>
+                            </label>
+                          </div>
+                          {crit.esExcluyente && (
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-semibold text-[rgba(57,64,73,0.65)]">
+                                Nota de corte
+                              </label>
+                              <input
+                                className="embed-input"
+                                type="number"
+                                step="0.1"
+                                min="1.0"
+                                max="7.0"
+                                value={crit.notaCorte}
+                                onChange={(e) => {
+                                  const n = [...criterios];
+                                  n[idx].notaCorte = parseFloat(e.target.value) || 4.0;
+                                  setCriterios(n);
+                                }}
+                              />
+                            </div>
+                          )}
+                          <div />
+                        </div>
+
                         <div className="flex items-center justify-between gap-3 flex-wrap">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className={crit.tipo === "ESTRUCTURAL" ? "embed-summary-badge success" : "embed-summary-badge warning"}>
                               {crit.tipo === "ESTRUCTURAL" ? "Estr." : "Comp."}
                             </span>
                             {crit.esExcluyente && (
-                              <span className="embed-summary-badge danger">Excluyente</span>
+                              <span className="embed-summary-badge danger">Excluyente (corte: {crit.notaCorte.toFixed(1)})</span>
                             )}
                           </div>
                           <div className="flex items-center gap-3 flex-wrap">

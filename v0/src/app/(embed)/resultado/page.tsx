@@ -22,12 +22,14 @@ interface EvaluacionData {
 interface RubricaData {
   _id: string;
   titulo: string;
+  notaAprobacion: number;
   criterios: Array<{
     _id: string;
     nombre: string;
     ponderacion: number;
     tipo: string;
     esExcluyente: boolean;
+    notaCorte: number;
     descriptores: Array<{
       notaNivel: number;
       etiqueta: string;
@@ -114,7 +116,8 @@ export default function ResultadoPage() {
     );
   }
 
-  const aprobada = evaluacion.notaFinal >= 4.0;
+  const notaAprobacion = rubrica?.notaAprobacion ?? 4.0;
+  const aprobada = evaluacion.notaFinal >= notaAprobacion;
 
   return (
     <div className="flex flex-col h-full">
@@ -172,7 +175,7 @@ export default function ResultadoPage() {
                     </span>
                   </div>
                   {puntaje && (
-                    <span className={"embed-tag " + (puntaje.notaAsignada >= 4.0 ? "success" : "danger")}>
+                    <span className={"embed-tag " + (puntaje.notaAsignada >= (criterio.notaCorte ?? 4.0) ? "success" : "danger")}>
                       {puntaje.notaAsignada.toFixed(1)}
                     </span>
                   )}

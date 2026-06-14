@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     await connectMongoDB();
 
-    const { titulo, metadata, criterios } = parsed.data;
+    const { titulo, notaAprobacion, metadata, criterios } = parsed.data;
 
     // Validar que la suma de ponderaciones = 1.0
     const estructurales = criterios.filter((c) => c.tipo === "ESTRUCTURAL");
@@ -106,6 +106,7 @@ export async function POST(request: NextRequest) {
       version: 1,
       parentRubricaId: null,
       titulo,
+      notaAprobacion: notaAprobacion ?? 4.0,
       esActiva: true,
       metadata: metadata || null,
       criterios: criterios.map((c, idx) => ({
@@ -114,6 +115,7 @@ export async function POST(request: NextRequest) {
         ponderacion: c.ponderacion,
         tipo: c.tipo,
         esExcluyente: c.esExcluyente,
+        notaCorte: c.notaCorte ?? 4.0,
         descripcion: c.descripcion || null,
         minPalabras: c.minPalabras || null,
         maxPalabras: c.maxPalabras || null,

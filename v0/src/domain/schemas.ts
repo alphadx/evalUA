@@ -19,6 +19,7 @@ export const CriterioSchema = z.object({
   ponderacion: z.number().min(0).max(1),
   tipo: z.enum(["ESTRUCTURAL", "COMPLEMENTARIO"]).default("ESTRUCTURAL"),
   esExcluyente: z.boolean().default(false),
+  notaCorte: z.number().min(1.0).max(7.0).default(4.0),
   descripcion: z.string().max(500).nullable().optional(),
   minPalabras: z.number().int().min(0).nullable().optional(),
   maxPalabras: z.number().int().min(0).nullable().optional(),
@@ -29,12 +30,14 @@ export const CriterioSchema = z.object({
 // --- Rubricas ---
 export const CrearRubricaSchema = z.object({
   titulo: z.string().min(1).max(300),
+  notaAprobacion: z.number().min(1.0).max(7.0).default(4.0),
   metadata: z.record(z.string(), z.unknown()).optional(),
   criterios: z.array(CriterioSchema).min(1),
 });
 
 export const ActualizarRubricaSchema = z.object({
   titulo: z.string().min(1).max(300).optional(),
+  notaAprobacion: z.number().min(1.0).max(7.0).optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
   criterios: z.array(CriterioSchema).min(1).optional(),
   esActiva: z.boolean().optional(),

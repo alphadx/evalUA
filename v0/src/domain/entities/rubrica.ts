@@ -15,6 +15,7 @@ export class Rubrica {
     public readonly version: number,
     public readonly parentRubricaId: RubricaId | null,
     public titulo: string,
+    public notaAprobacion: number,
     public esActiva: boolean,
     public metadata: Record<string, unknown> | null,
     public readonly createdAt: Date,
@@ -23,6 +24,7 @@ export class Rubrica {
 
   static create(params: {
     titulo: string;
+    notaAprobacion?: number;
     metadata?: Record<string, unknown>;
   }): Rubrica {
     const id = crypto.randomUUID() as RubricaId;
@@ -32,6 +34,7 @@ export class Rubrica {
       1,
       null,
       params.titulo,
+      params.notaAprobacion ?? 4.0,
       true,
       params.metadata || null,
       new Date(),
@@ -71,6 +74,7 @@ export class Rubrica {
       this.version + 1,
       this.id,
       nuevoTitulo || this.titulo,
+      this.notaAprobacion,
       true,
       this.metadata ? { ...this.metadata } : null,
       new Date(),

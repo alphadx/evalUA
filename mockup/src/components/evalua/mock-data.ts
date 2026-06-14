@@ -12,6 +12,7 @@ export interface Criterio {
   ponderacion: number;
   tipo: "ESTRUCTURAL" | "COMPLEMENTARIO";
   esExcluyente: boolean;
+  notaCorte: number;
   descripcion: string | null;
   minPalabras: number | null;
   maxPalabras: number | null;
@@ -22,6 +23,7 @@ export interface Criterio {
 export interface Rubrica {
   id: string;
   titulo: string;
+  notaAprobacion: number;
   esActiva: boolean;
   metadata: Record<string, unknown> | null;
   criterios: Criterio[];
@@ -52,6 +54,7 @@ export interface Evaluacion {
 export const mockRubrica1: Rubrica = {
   id: "rub-001",
   titulo: "Proyecto de Ingeniería de Software",
+  notaAprobacion: 4.0,
   esActiva: true,
   metadata: { version: 1, departamento: "Informática" },
   criterios: [
@@ -61,6 +64,7 @@ export const mockRubrica1: Rubrica = {
       ponderacion: 0.25,
       tipo: "ESTRUCTURAL",
       esExcluyente: true,
+      notaCorte: 4.0,
       descripcion: "Evalúa la calidad, limpieza y modularidad del código fuente entregado.",
       minPalabras: null,
       maxPalabras: null,
@@ -81,6 +85,7 @@ export const mockRubrica1: Rubrica = {
       ponderacion: 0.25,
       tipo: "ESTRUCTURAL",
       esExcluyente: false,
+      notaCorte: 4.0,
       descripcion: "Evalúa la arquitectura del sistema y la separación de responsabilidades.",
       minPalabras: null,
       maxPalabras: null,
@@ -101,6 +106,7 @@ export const mockRubrica1: Rubrica = {
       ponderacion: 0.20,
       tipo: "ESTRUCTURAL",
       esExcluyente: false,
+      notaCorte: 4.0,
       descripcion: "Evalúa la calidad y completitud de la documentación del proyecto.",
       minPalabras: 100,
       maxPalabras: 5000,
@@ -121,6 +127,7 @@ export const mockRubrica1: Rubrica = {
       ponderacion: 0.15,
       tipo: "COMPLEMENTARIO",
       esExcluyente: false,
+      notaCorte: 4.0,
       descripcion: "Evalúa la colaboración y distribución de tareas en el equipo.",
       minPalabras: null,
       maxPalabras: null,
@@ -141,6 +148,7 @@ export const mockRubrica1: Rubrica = {
       ponderacion: 0.15,
       tipo: "COMPLEMENTARIO",
       esExcluyente: false,
+      notaCorte: 4.0,
       descripcion: "Evalúa la calidad de la presentación del proyecto y la defensa ante el tribunal.",
       minPalabras: null,
       maxPalabras: null,
@@ -163,6 +171,7 @@ export const mockRubrica1: Rubrica = {
 export const mockRubrica2: Rubrica = {
   id: "rub-002",
   titulo: "Informe de Laboratorio de Química",
+  notaAprobacion: 4.0,
   esActiva: true,
   metadata: { version: 2, departamento: "Química" },
   criterios: [
@@ -172,6 +181,7 @@ export const mockRubrica2: Rubrica = {
       ponderacion: 0.35,
       tipo: "ESTRUCTURAL",
       esExcluyente: true,
+      notaCorte: 4.0,
       descripcion: null,
       minPalabras: null,
       maxPalabras: null,
@@ -192,6 +202,7 @@ export const mockRubrica2: Rubrica = {
       ponderacion: 0.35,
       tipo: "ESTRUCTURAL",
       esExcluyente: false,
+      notaCorte: 4.0,
       descripcion: null,
       minPalabras: null,
       maxPalabras: null,
@@ -212,6 +223,7 @@ export const mockRubrica2: Rubrica = {
       ponderacion: 0.30,
       tipo: "ESTRUCTURAL",
       esExcluyente: false,
+      notaCorte: 4.0,
       descripcion: null,
       minPalabras: 200,
       maxPalabras: 1000,
@@ -234,6 +246,7 @@ export const mockRubrica2: Rubrica = {
 export const mockRubrica3: Rubrica = {
   id: "rub-003",
   titulo: "Ensayo Académico — Literatura Universal",
+  notaAprobacion: 4.0,
   esActiva: false,
   metadata: { version: 1, departamento: "Humanidades" },
   criterios: [
@@ -243,6 +256,7 @@ export const mockRubrica3: Rubrica = {
       ponderacion: 0.40,
       tipo: "ESTRUCTURAL",
       esExcluyente: true,
+      notaCorte: 4.0,
       descripcion: null,
       minPalabras: 500,
       maxPalabras: 2000,
@@ -263,6 +277,7 @@ export const mockRubrica3: Rubrica = {
       ponderacion: 0.30,
       tipo: "COMPLEMENTARIO",
       esExcluyente: false,
+      notaCorte: 4.0,
       descripcion: null,
       minPalabras: null,
       maxPalabras: null,
@@ -283,6 +298,7 @@ export const mockRubrica3: Rubrica = {
       ponderacion: 0.30,
       tipo: "COMPLEMENTARIO",
       esExcluyente: false,
+      notaCorte: 4.0,
       descripcion: null,
       minPalabras: null,
       maxPalabras: null,

@@ -24,7 +24,7 @@ export interface IEvaluacionStrategy {
  * - Si P < E: G = 1.0 + 3.0 × (P / E)
  * - Si P ≥ E: G = 4.0 + 3.0 × ((P - E) / (1.0 - E))
  *
- * Gatekeeper: Si un criterio excluyente tiene nota < 4.0 → nota = 1.0
+ * Gatekeeper: Si un criterio excluyente tiene nota < notaCorte → nota = 1.0
  */
 export class EvaluacionStrategy implements IEvaluacionStrategy {
   calcular(
@@ -36,7 +36,7 @@ export class EvaluacionStrategy implements IEvaluacionStrategy {
     for (const criterio of criterios) {
       if (criterio.esExcluyente) {
         const puntaje = puntajes.find((p) => p.criterioId === criterio.id);
-        if (puntaje && puntaje.notaAsignada.valor < 4.0) {
+        if (puntaje && puntaje.notaAsignada.valor < criterio.notaCorte) {
           return Nota.create(1.0);
         }
       }

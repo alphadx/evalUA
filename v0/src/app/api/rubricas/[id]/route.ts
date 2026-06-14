@@ -122,6 +122,7 @@ export async function PUT(
         version: rubrica.version + 1,
         parentRubricaId: id,
         titulo: parsed.data.titulo || rubrica.titulo,
+        notaAprobacion: parsed.data.notaAprobacion ?? rubrica.notaAprobacion,
         esActiva: true,
         metadata: parsed.data.metadata || rubrica.metadata,
         criterios: parsed.data.criterios.map((c, idx) => ({
@@ -130,6 +131,7 @@ export async function PUT(
           ponderacion: c.ponderacion,
           tipo: c.tipo,
           esExcluyente: c.esExcluyente,
+          notaCorte: c.notaCorte ?? 4.0,
           descripcion: c.descripcion || null,
           minPalabras: c.minPalabras || null,
           maxPalabras: c.maxPalabras || null,
@@ -150,6 +152,7 @@ export async function PUT(
 
     // Actualización directa (sin evaluaciones previas)
     if (parsed.data.titulo) rubrica.titulo = parsed.data.titulo;
+    if (parsed.data.notaAprobacion !== undefined) rubrica.notaAprobacion = parsed.data.notaAprobacion;
     if (parsed.data.metadata !== undefined) rubrica.metadata = parsed.data.metadata || null;
     if (parsed.data.esActiva !== undefined) rubrica.esActiva = parsed.data.esActiva;
     if (parsed.data.criterios) {
@@ -160,6 +163,7 @@ export async function PUT(
         ponderacion: c.ponderacion,
         tipo: c.tipo,
         esExcluyente: c.esExcluyente,
+        notaCorte: c.notaCorte ?? 4.0,
         descripcion: c.descripcion || null,
         minPalabras: c.minPalabras || null,
         maxPalabras: c.maxPalabras || null,
