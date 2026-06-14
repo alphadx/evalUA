@@ -2,7 +2,10 @@
   "mcpServers": {
     "docker": {
       "transport": "sse",
-      "url": "http://localhost:8089"
+      "url": "http://localhost:8089/sse",
+      "headers": {
+        "Authorization": "Bearer kddk3s9ctmeujbq1v6forb0nxkpz95a9dbzs6wjojpmsm22t3u"
+      }
     }
   }
 }

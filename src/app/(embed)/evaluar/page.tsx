@@ -453,39 +453,35 @@ export default function EvaluarPage() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div
-        className="flex items-center justify-between px-4 py-2 border-b"
-        style={{
-          borderColor: "rgba(57,64,73,0.15)",
-          backgroundColor: "var(--color-evalUA16)",
-        }}
-      >
-        <div className="flex items-center gap-2">
-          <span
-            className="font-semibold text-sm"
-            style={{ color: "var(--color-evalUA1)" }}
-          >
-            Rúbrica:
-          </span>
-          <span className="text-sm font-medium">{rubrica.titulo}</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs" style={{ color: "rgba(57,64,73,0.6)" }}>
-            {pasoActual === "resumen"
-              ? "Resumen"
-              : `Criterio ${(typeof pasoActual === "number" ? pasoActual : 0) + 1} de ${criteriosOrdenados.length} + Resumen`}
-          </span>
-          {savingDraft && (
-            <span className="text-xs" style={{ color: "var(--color-evalUA1)" }}>
-              Guardando...
-            </span>
-          )}
-        </div>
+      <div className="embed-header">
+        <div className="embed-title">Evaluación</div>
+        <span className="embed-badge">RÚBRICA</span>
       </div>
 
-      {/* Content Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-3">
+      <div className="embed-content overflow-y-auto px-4 py-4 space-y-4">
+        <div className="embed-panel px-4 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold" style={{ color: "var(--color-evalUA2)" }}>
+                {rubrica.titulo}
+              </p>
+              <p className="text-sm font-medium mt-1">
+                {pasoActual === "resumen" ? "Resumen" : `Criterio ${(typeof pasoActual === "number" ? pasoActual : 0) + 1} de ${criteriosOrdenados.length}`}
+              </p>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              {savingDraft && (
+                <span className="text-xs" style={{ color: "var(--color-evalUA1)" }}>
+                  Guardando...
+                </span>
+              )}
+              <span className="text-xs" style={{ color: "rgba(57,64,73,0.6)" }}>
+                {pasoActual === "resumen" ? "Resumen completo" : "Avance en evaluación"}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <AnimatePresence mode="wait">
           {pasoActual === "resumen" ? (
             <motion.div
@@ -714,14 +710,7 @@ export default function EvaluarPage() {
         </AnimatePresence>
       </div>
 
-      {/* Footer */}
-      <div
-        className="flex items-center justify-between px-4 py-2 border-t"
-        style={{
-          borderColor: "rgba(57,64,73,0.15)",
-          backgroundColor: "var(--color-evalUA16)",
-        }}
-      >
+      <div className="embed-panel-footer">
         <button
           className="px-4 py-1.5 text-sm rounded border hover:opacity-80 transition-opacity"
           style={{
@@ -739,7 +728,7 @@ export default function EvaluarPage() {
           Atrás
         </button>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {notaFinalProvisional !== null && (
             <div className="flex items-center gap-2">
               <span className="text-xs" style={{ color: "rgba(57,64,73,0.6)" }}>

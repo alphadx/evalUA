@@ -47,10 +47,13 @@ export default function ResultadoPage() {
     const init = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
-        const evaluacionId = params.get("id");
+        const evaluacionId =
+          params.get("id") ||
+          params.get("evaluacion_id") ||
+          params.get("evaluacionId");
 
         if (!evaluacionId) {
-          setError("Se requiere ID de evaluación");
+          setError("Se requiere ID de evaluación (id o evaluacion_id)");
           setLoading(false);
           return;
         }
@@ -115,162 +118,126 @@ export default function ResultadoPage() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header con nota final */}
-      <div
-        className="flex items-center justify-between px-4 py-2 border-b"
-        style={{
-          borderColor: "rgba(57,64,73,0.15)",
-          backgroundColor: "var(--color-evalUA16)",
-        }}
-      >
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm" style={{ color: "var(--color-evalUA1)" }}>
-            Resultado:
-          </span>
-          <span className="text-sm font-medium">{rubrica.titulo}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs" style={{ color: "rgba(57,64,73,0.6)" }}>
-            Nota Final:
-          </span>
-          <span
-            className="text-base font-bold px-3 py-1 rounded"
-            style={{
-              backgroundColor: aprobada ? "var(--color-evalUA21)" : "var(--color-evalUA8)",
-              color: "#fff",
-            }}
-          >
-            {evaluacion.notaFinal.toFixed(2)}
-          </span>
-          <span
-            className="text-xs font-medium px-2 py-0.5 rounded"
-            style={{
-              backgroundColor: aprobada ? "var(--color-evalUA21)" : "var(--color-evalUA8)",
-              color: "#fff",
-            }}
-          >
-            {aprobada ? "Aprobada" : "Reprobada"}
-          </span>
-        </div>
+      <div className="embed-header">
+        <div className="embed-title">Resultado de evaluación</div>
+        <span className="embed-badge">RESULTADO</span>
       </div>
 
-      {/* Acordeón de criterios */}
-      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1">
-        {rubrica.criterios.map((criterio) => {
-          const puntaje = evaluacion.puntajes.find(
-            (p) => p.criterioId === criterio._id
-          );
-          const expandido = criterioExpandido === criterio._id;
-          const descriptorSeleccionado = puntaje
-            ? criterio.descriptores.find((d) => d.notaNivel === puntaje.notaAsignada)
-            : null;
-
-          return (
-            <div
-              key={criterio._id}
-              className="border rounded overflow-hidden"
-              style={{ borderColor: "rgba(57,64,73,0.15)" }}
-            >
-              {/* Fila colapsada */}
-              <button
-                className="w-full flex items-center justify-between px-3 py-2 hover:opacity-80 transition-opacity text-left"
-                style={{ backgroundColor: "var(--color-evalUA16)" }}
-                onClick={() =>
-                  setCriterioExpandido(expandido ? null : criterio._id)
-                }
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">{criterio.nombre}</span>
-                  <span className="text-xs" style={{ color: "rgba(57,64,73,0.5)" }}>
-                    ({(criterio.ponderacion * 100).toFixed(0)}%)
-                  </span>
-                </div>
-                {puntaje && (
-                  <span
-                    className="text-xs font-bold px-2 py-0.5 rounded"
-                    style={{
-                      backgroundColor:
-                        puntaje.notaAsignada >= 4.0
-                          ? "var(--color-evalUA21)"
-                          : "var(--color-evalUA8)",
-                      color: "#fff",
-                    }}
-                  >
-                    {puntaje.notaAsignada.toFixed(1)}
-                  </span>
-                )}
-              </button>
-
-              {/* Contenido expandido */}
-              {expandido && (
-                <div
-                  className="px-3 py-2 border-t space-y-1"
-                  style={{
-                    borderColor: "rgba(57,64,73,0.1)",
-                    backgroundColor: "rgba(255,254,253,0.5)",
-                  }}
-                >
-                  {[...criterio.descriptores]
-                    .sort((a, b) => b.notaNivel - a.notaNivel)
-                    .map((descriptor) => {
-                      const esSeleccionado =
-                        descriptorSeleccionado?.notaNivel === descriptor.notaNivel;
-                      return (
-                        <div
-                          key={descriptor.notaNivel}
-                          className="px-3 py-2 rounded text-sm"
-                          style={{
-                            backgroundColor: esSeleccionado
-                              ? "var(--color-evalUA4)"
-                              : "transparent",
-                            borderLeft: esSeleccionado
-                              ? "3px solid var(--color-evalUA21)"
-                              : "3px solid transparent",
-                            opacity: esSeleccionado ? 1 : 0.5,
-                          }}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold">
-                              Nota {descriptor.notaNivel}:
-                            </span>
-                            <span>{descriptor.etiqueta}</span>
-                          </div>
-                          {esSeleccionado && descriptor.bulletPoints.length > 0 && (
-                            <ul className="mt-1 ml-4 list-disc">
-                              {descriptor.bulletPoints.map((bp, i) => (
-                                <li key={i} className="text-xs text-gray-600">
-                                  {bp}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      );
-                    })}
-                </div>
-              )}
+      <div className="embed-content overflow-y-auto px-4 py-4 space-y-3">
+        <div className="embed-panel px-4 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold" style={{ color: "var(--color-evalUA2)" }}>
+                {rubrica.titulo}
+              </p>
+              <p className="text-sm font-medium mt-1">Nota final</p>
             </div>
-          );
-        })}
-      </div>
-
-      {/* Footer con observaciones */}
-      {evaluacion.observaciones && (
-        <div
-          className="px-4 py-2 border-t"
-          style={{
-            borderColor: "rgba(57,64,73,0.15)",
-            backgroundColor: "var(--color-evalUA16)",
-          }}
-        >
-          <span className="text-xs font-medium" style={{ color: "var(--color-evalUA2)" }}>
-            Observaciones:{" "}
-          </span>
-          <span className="text-xs" style={{ color: "rgba(57,64,73,0.7)" }}>
-            {evaluacion.observaciones}
-          </span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs" style={{ color: "rgba(57,64,73,0.6)" }}>
+                Promedio
+              </span>
+              <span className="text-base font-bold px-3 py-1 rounded" style={{ backgroundColor: aprobada ? "var(--color-evalUA21)" : "var(--color-evalUA8)", color: "#fff" }}>
+                {evaluacion.notaFinal.toFixed(2)}
+              </span>
+              <span className={"embed-summary-badge " + (aprobada ? "success" : "warning")}>{aprobada ? "Aprobada" : "No aprobada"}</span>
+            </div>
+          </div>
         </div>
-      )}
+
+        <div className="space-y-3">
+          {rubrica.criterios.map((criterio) => {
+            const puntaje = evaluacion.puntajes.find(
+              (p) => p.criterioId === criterio._id
+            );
+            const expandido = criterioExpandido === criterio._id;
+            const descriptorSeleccionado = puntaje
+              ? criterio.descriptores.find((d) => d.notaNivel === puntaje.notaAsignada)
+              : null;
+
+            return (
+              <div
+                key={criterio._id}
+                className="embed-panel overflow-hidden"
+              >
+                <button
+                  className="w-full flex items-center justify-between px-4 py-3 text-left"
+                  onClick={() =>
+                    setCriterioExpandido(expandido ? null : criterio._id)
+                  }
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">{criterio.nombre}</span>
+                    <span className="text-xs" style={{ color: "rgba(57,64,73,0.5)" }}>
+                      ({(criterio.ponderacion * 100).toFixed(0)}%)
+                    </span>
+                  </div>
+                  {puntaje && (
+                    <span className={"embed-tag " + (puntaje.notaAsignada >= 4.0 ? "success" : "danger")}>
+                      {puntaje.notaAsignada.toFixed(1)}
+                    </span>
+                  )}
+                </button>
+
+                {expandido && (
+                  <div
+                    className="border-t px-4 py-3 bg-[rgba(255,254,253,0.85)]"
+                    style={{ borderColor: "rgba(57,64,73,0.1)" }}
+                  >
+                    {[...criterio.descriptores]
+                      .sort((a, b) => b.notaNivel - a.notaNivel)
+                      .map((descriptor) => {
+                        const esSeleccionado =
+                          descriptorSeleccionado?.notaNivel === descriptor.notaNivel;
+                        return (
+                          <div
+                            key={descriptor.notaNivel}
+                            className="rounded-md px-3 py-3 mb-2 text-sm"
+                            style={{
+                              backgroundColor: esSeleccionado
+                                ? "var(--color-evalUA4)"
+                                : "transparent",
+                              borderLeft: esSeleccionado
+                                ? "3px solid var(--color-evalUA21)"
+                                : "3px solid transparent",
+                              opacity: esSeleccionado ? 1 : 0.85,
+                            }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold">
+                                Nota {descriptor.notaNivel}:
+                              </span>
+                              <span>{descriptor.etiqueta}</span>
+                            </div>
+                            {esSeleccionado && descriptor.bulletPoints.length > 0 && (
+                              <ul className="mt-2 ml-5 list-disc" style={{ color: "rgba(57,64,73,0.7)" }}>
+                                {descriptor.bulletPoints.map((bp, i) => (
+                                  <li key={i} className="text-xs text-gray-600">
+                                    {bp}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {evaluacion.observaciones && (
+          <div className="embed-panel px-4 py-4">
+            <span className="text-xs font-medium" style={{ color: "var(--color-evalUA2)" }}>
+              Observaciones
+            </span>
+            <p className="text-xs mt-2" style={{ color: "rgba(57,64,73,0.7)" }}>
+              {evaluacion.observaciones}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
