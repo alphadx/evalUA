@@ -51,9 +51,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1.25rem;
   background-color: #f8f8f6;
-  border-bottom: 1px solid rgba(57, 64, 73, 0.15);
+  border-bottom: 1px solid rgba(57, 64, 73, 0.08);
 }
 
 .embed-title {
@@ -78,19 +78,25 @@
 
 .embed-panel {
   background: var(--embed-surface);
-  border: 1px solid var(--embed-border);
-  border-radius: 1rem;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 .embed-card {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  border-radius: 1rem;
-  border: 1px solid var(--embed-border);
-  padding: 0.75rem 0.9rem;
+  gap: 0.85rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(229, 231, 235, 0.45);
+  padding: 0.85rem 1rem;
   background: var(--embed-surface);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.embed-card:hover {
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  border-color: rgba(229, 231, 235, 0.7);
 }
 
 .embed-card-icon {
@@ -264,11 +270,11 @@
 
 html,
 body {
-  width: 1029px;
-  height: 466px;
-  max-width: 1029px;
-  max-height: 466px;
-  overflow: hidden;
+  width: 100%;
+  min-height: 466px;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background-color: var(--color-evalUA16);
   color: var(--color-evalUA2);

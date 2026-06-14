@@ -13,15 +13,24 @@
     --evalua-teal: #9DD4D3;
     --evalua-card: #ffffff;
     --evalua-bg: #f9fafb;
+    --evalua-bg-light: #fffefd;
+    --evalua-border: #e5e7eb;
+    --evalua-muted: #6b7280;
+    --evalua-success-light: #d1fae5;
+    --evalua-warning-light: #fef3c7;
+    --evalua-warning-strong: #f59e0b;
+    --evalua-primary-light: rgba(234, 118, 0, 0.094);
+    --evalua-danger-light: rgba(200, 16, 46, 0.094);
+    --evalua-success-light-bg: rgba(25, 135, 84, 0.094);
     --text-muted: #6b7280;
     --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
     --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
     --radius-sm: 6px;
     --radius-md: 10px;
     --radius-lg: 16px;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-    --shadow-lg: 0 8px 24px rgba(0,0,0,0.15);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -481,6 +490,7 @@ a[href].text-decoration-none {
     font-size: 1.875rem;
     font-weight: 700;
     color: var(--evalua-dark);
+    letter-spacing: -0.025em;
 }
 
 .section-subtitle {
@@ -513,14 +523,14 @@ a[href].text-decoration-none {
     border: 1px solid rgba(229,231,235,0.8);
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    transition: box-shadow 0.3s ease;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
     display: flex;
     flex-direction: column;
 }
 
 .feature-card:hover {
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
 .feature-icon {
@@ -1172,4 +1182,177 @@ footer {
 
 footer p, footer span {
     color: #9ca3af;
+}
+
+/* ============================
+   ENTRANCE ANIMATIONS
+   Matching Framer Motion from Next.js maqueta
+   ============================ */
+
+/* Fade + Slide Up (used by hero, sections, cards) */
+@keyframes fadeSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fade + Slide Up (smaller distance for subtitles/cards) */
+@keyframes fadeSlideUpSm {
+    from {
+        opacity: 0;
+        transform: translateY(32px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Scale in (used by arch nodes, tech badges) */
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Arrow slide in */
+@keyframes arrowSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* --- Hero Section Animations --- */
+.hero-pill {
+    opacity: 0;
+    animation: fadeSlideUp 0.6s ease-out 0s forwards;
+}
+
+.hero-title {
+    opacity: 0;
+    animation: fadeSlideUp 0.6s ease-out 0.1s forwards;
+}
+
+.hero-subtitle {
+    opacity: 0;
+    animation: fadeSlideUp 0.6s ease-out 0.2s forwards;
+}
+
+.hero-description {
+    opacity: 0;
+    animation: fadeSlideUp 0.6s ease-out 0.3s forwards;
+}
+
+/* --- Section Title Animations --- */
+.section-title {
+    opacity: 0;
+    animation: fadeSlideUpSm 0.5s ease-out 0s forwards;
+}
+
+.section-subtitle {
+    opacity: 0;
+    animation: fadeSlideUpSm 0.5s ease-out 0.05s forwards;
+}
+
+/* --- Feature Cards Staggered Animation --- */
+.feature-card {
+    opacity: 0;
+    animation: fadeSlideUpSm 0.5s ease-out forwards;
+}
+
+.feature-card:nth-child(1) { animation-delay: 0.1s; }
+.feature-card:nth-child(2) { animation-delay: 0.15s; }
+.feature-card:nth-child(3) { animation-delay: 0.2s; }
+.feature-card:nth-child(4) { animation-delay: 0.25s; }
+.feature-card:nth-child(5) { animation-delay: 0.3s; }
+.feature-card:nth-child(6) { animation-delay: 0.35s; }
+
+/* --- Architecture Section Animations --- */
+.architecture-section .section-title,
+.architecture-section .section-subtitle {
+    opacity: 0;
+    animation: fadeSlideUpSm 0.5s ease-out forwards;
+}
+
+.architecture-section .section-subtitle {
+    animation-delay: 0.05s;
+}
+
+.arch-icon {
+    opacity: 0;
+    animation: scaleIn 0.4s ease-out forwards;
+}
+
+.arch-node:nth-child(1) .arch-icon { animation-delay: 0.1s; }
+.arch-node:nth-child(3) .arch-icon { animation-delay: 0.2s; }
+.arch-node:nth-child(5) .arch-icon { animation-delay: 0.3s; }
+.arch-node:nth-child(7) .arch-icon { animation-delay: 0.4s; }
+.arch-node:nth-child(9) .arch-icon { animation-delay: 0.5s; }
+
+.arch-arrow {
+    opacity: 0;
+    animation: arrowSlideIn 0.3s ease-out forwards;
+}
+
+.arch-node:nth-child(2) .arch-arrow { animation-delay: 0.15s; }
+.arch-node:nth-child(4) .arch-arrow { animation-delay: 0.25s; }
+.arch-node:nth-child(6) .arch-arrow { animation-delay: 0.35s; }
+.arch-node:nth-child(8) .arch-arrow { animation-delay: 0.45s; }
+
+.arch-legend {
+    opacity: 0;
+    animation: fadeSlideUpSm 0.5s ease-out 0.5s forwards;
+}
+
+/* --- Tech Stack Badge Animations --- */
+.tech-section .section-title,
+.tech-section .section-subtitle {
+    opacity: 0;
+    animation: fadeSlideUpSm 0.5s ease-out forwards;
+}
+
+.tech-section .section-subtitle {
+    animation-delay: 0.05s;
+}
+
+.tech-badge {
+    opacity: 0;
+    animation: scaleIn 0.3s ease-out forwards;
+}
+
+.tech-badge:nth-child(1) { animation-delay: 0.05s; }
+.tech-badge:nth-child(2) { animation-delay: 0.08s; }
+.tech-badge:nth-child(3) { animation-delay: 0.11s; }
+.tech-badge:nth-child(4) { animation-delay: 0.14s; }
+.tech-badge:nth-child(5) { animation-delay: 0.17s; }
+.tech-badge:nth-child(6) { animation-delay: 0.20s; }
+.tech-badge:nth-child(7) { animation-delay: 0.23s; }
+.tech-badge:nth-child(8) { animation-delay: 0.26s; }
+.tech-badge:nth-child(9) { animation-delay: 0.29s; }
+
+/* --- Info Bar Animation --- */
+.info-bar-section {
+    opacity: 0;
+    animation: fadeSlideUpSm 0.5s ease-out 0.3s forwards;
+}
+
+/* --- Architecture Container Animation --- */
+.architecture-section > .mx-auto {
+    opacity: 0;
+    animation: fadeSlideUpSm 0.5s ease-out 0s forwards;
 }
