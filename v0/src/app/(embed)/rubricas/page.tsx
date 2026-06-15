@@ -356,8 +356,22 @@ export default function RubricasPage() {
             )}
           </div>
 
-          {/* ── Header de criterios ── */}
-          <div className="flex items-center justify-between gap-2">
+          {/* ── Header de criterios (sticky) ── */}
+          <div
+            className="flex items-center justify-between gap-2"
+            style={{
+              position: "sticky",
+              top: 0,
+              zIndex: 5,
+              backgroundColor: "var(--embed-bg)",
+              paddingBottom: "0.375rem",
+              borderBottom: "1px solid rgba(229, 231, 235, 0.5)",
+              paddingTop: "0.25rem",
+              margin: "0 -0.75rem",
+              paddingLeft: "0.75rem",
+              paddingRight: "0.75rem",
+            }}
+          >
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold" style={{ color: "var(--color-evalUA2)" }}>
                 Criterios
