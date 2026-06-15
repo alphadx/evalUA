@@ -42,6 +42,9 @@ POST /api/rubricas
 Content-Type: application/json
 ```
 - **Backend:** Valida que la suma de criterios sea exactamente 1.0. Guarda la nueva rúbrica estructurada en MongoDB, inyectando el `usuario_id` proveniente del JWT en los metadatos del documento.
+- **Campos configurables del payload:**
+  - `notaAprobacion` (number, 1.0–7.0, default 4.0): Nota mínima para considerar aprobatoria la evaluación. Se almacena a nivel de rúbrica.
+  - Cada criterio incluye `notaCorte` (number, 1.0–7.0, default 4.0): Umbral para la regla Gatekeeper. Si un criterio excluyente (`esExcluyente: true`) tiene nota asignada inferior a `notaCorte`, la evaluación se reprueba automáticamente con nota 1.0.
 - **Response 201:** Retorna la rúbrica guardada e incluye el `rubricaId` (UUID) generado en la respuesta.
 
 ### PUT /api/rubricas/[id]

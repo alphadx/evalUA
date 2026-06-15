@@ -43,6 +43,7 @@ classDiagram
         +number version
         +string parentRubricaId
         +string titulo
+        +number notaAprobacion
         +boolean esActiva
         +Object metadata
         +Criterio[] criterios
@@ -56,6 +57,7 @@ classDiagram
         +number ponderacion
         +string tipo
         +boolean esExcluyente
+        +number notaCorte
         +string descripcion
         +number minPalabras
         +number maxPalabras
@@ -120,6 +122,7 @@ const CriterioSchema = new Schema({
   ponderacion: { type: Number, required: true, min: 0.0, max: 1.0 },
   tipo: { type: String, enum: ["ESTRUCTURAL", "COMPLEMENTARIO"], default: "ESTRUCTURAL" },
   esExcluyente: { type: Boolean, default: false },
+  notaCorte: { type: Number, default: 4.0, min: 1.0, max: 7.0 }, // Umbral Gatekeeper
   descripcion: { type: String, default: null },
   minPalabras: { type: Number, default: null },
   maxPalabras: { type: Number, default: null },
@@ -133,6 +136,7 @@ const RubricaSchema = new Schema({
   version: { type: Number, default: 1, required: true }, // Número de versión (Document Versioning Pattern)
   parentRubricaId: { type: String, default: null }, // ID de la versión anterior
   titulo: { type: String, required: true },
+  notaAprobacion: { type: Number, default: 4.0, min: 1.0, max: 7.0 }, // Nota mínima aprobatoria
   esActiva: { type: Boolean, default: true, index: true },
   metadata: { type: Schema.Types.Mixed, default: null },
   criterios: [CriterioSchema] // Embebido (Agregado DDD)

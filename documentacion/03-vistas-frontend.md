@@ -104,11 +104,13 @@ Como medida del estado del arte para garantizar la integridad de la interfaz, el
      - Se marca el nivel visualmente (borde izquierdo 4px + fondo `--color-evalUA4--`).
      - Se guarda el puntaje temporalmente en la evaluación.
      - El sistema avanza automáticamente al siguiente criterio (con delay de 400ms). Al calificar el último criterio, avanza automáticamente a la pantalla de Resumen.
-3. **Barra de Cálculo Acumulado:** Franja inferior fija (`sticky bottom-0`) que muestra en tiempo real la nota final calculada basada en las selecciones actuales. Incorpora alertas semánticas si se fallan criterios de la regla Gatekeeper.
+3. **Barra de Cálculo Acumulado:** Franja inferior fija (`sticky bottom-0`) que muestra en tiempo real la nota final calculada basada en las selecciones actuales. Incorpora alertas semánticas si se fallan criterios de la regla Gatekeeper. La comparación de aprobación usa la `notaAprobacion` de la rúbrica (configurable, por defecto 4.0), y la detección de Gatekeeper usa el `notaCorte` de cada criterio excluyente (configurable, por defecto 4.0).
 4. **Auto-save en Segundo Plano:** Cada clic de calificación o inserción de comentarios en el campo de observaciones dispara una petición asíncrona `PUT /api/evaluaciones/[id]` para evitar pérdida de progreso por desconexiones o cierres de ventana (transicionando el borrador a `EN_REVISION` cuando se entra a la pantalla de resumen).
 5. **Acción Final (Visualización de Resumen):** Al calificar el último criterio, el wizard avanza automáticamente al paso de Resumen en lugar de habilitar directamente la finalización desde el criterio.
 6. **Pantalla de Resumen y Confirmación:**
-   - **Contenido:** Muestra la lista completa de criterios con la nota asignada y la etiqueta del descriptor seleccionado, la nota final calculada provisional (ponderada con regla Gatekeeper aplicada), e indicadores visuales de aprobación/reprobación por criterio y global.
+   - **Contenido:** Muestra la lista completa de criterios con la nota asignada y la etiqueta del descriptor seleccionado, la nota final calculada provisional (ponderada con regla Gatekeeper aplicada, usando `notaCorte` configurable por criterio excluyente), e indicadores visuales de aprobación/reprobación por criterio (comparando contra `notaAprobacion` de la rúbrica) y global.
+   - **Detalle del Cálculo:** Sección que desglosa la contribución ponderada de cada criterio (nota × peso = contribución) y la nota final, más la alerta de Gatekeeper si corresponde.
+   - **Botón "✏ Modificar":** Cada criterio del resumen incluye un botón para regresar al paso correspondiente y editar la calificación.
    - **Campo de Observaciones Generales:** Campo de texto editable para comentarios globales sobre la evaluación, sincronizado con auto-save.
    - **Navegación Interactiva:** El evaluador puede hacer clic en cualquier criterio en la lista del resumen para regresar a su paso y modificar la calificación. Tras modificar, puede navegar hacia adelante libremente de nuevo hasta regresar al Resumen. El botón "Atrás" retrocede al último criterio de la rúbrica.
    - **Confirmación Definitiva ("Finalizar Evaluación"):** Este botón solo aparece en la pantalla de Resumen. Al presionarlo se ejecuta el cálculo final, se persiste en MongoDB (estado `COMPLETADA`), se elimina el borrador de Redis y se emite el postMessage de completado al host:
@@ -146,6 +148,7 @@ Como medida del estado del arte para garantizar la integridad de la interfaz, el
 - **Ruta:** `/embed/rubricas?jwt={token}`
 - **Acceso:** Roles `MANTENEDOR` y `ADMINISTRADOR`.
 - **Funcionalidad:** Listado de rúbricas filtrado según `usuario_id` y claim `puede_ver_rubricas_ajenas`. Creación y edición de rúbricas con formulario dinámico. Versionamiento inmutable al editar rúbricas con evaluaciones previas. Al crear una rúbrica, el evento `postMessage` `evalua.rubrica.created` retorna el `rubricaId` generado al Host.
+- **Campos configurables por rúbrica:** El formulario incluye el campo `notaAprobacion` (number, 1.0–7.0, default 4.0) que define la nota mínima para aprobar evaluaciones de esa rúbrica. A nivel de criterio, el checkbox "Excluyente (Gatekeeper)" activa un campo condicional `notaCorte` (number, 1.0–7.0, default 4.0) que define el umbral individual de gatekeeper por criterio.
 - **ID de referencia visible:** Cada rúbrica exhibe su `_id` (UUID) en contenedor dashed con botón de copiar al portapapeles, para que el mantenedor pueda comunicar el identificador al equipo de integración del Host.
 
 #### Diseño de la Vista Lista
@@ -164,7 +167,7 @@ El formulario implementa un patrón de **accordion** optimizado para el viewport
    - Al expandir, se muestra "Criterio X de N" como indicador de progreso.
 3. **Scroll-into-view:** Al expandir un criterio o agregar uno nuevo, el contenedor hace scroll suave (`scrollIntoView({ behavior: 'smooth', block: 'start' })`) para mantener el criterio activo visible.
 4. **Inputs compactos:** Clases CSS `embed-input-compact` (h-7, text-xs) e `embed-input-xs` (h-6, text-[11px]) para minimizar la altura ocupada.
-5. **Switch toggle:** El toggle de "Excluyente (Gatekeeper)" usa un switch CSS personalizado en vez de checkbox nativo.
+5. **Switch toggle y nota de corte:** El toggle de "Excluyente (Gatekeeper)" usa un switch CSS personalizado en vez de checkbox nativo. Al activarse, muestra un campo condicional "Nota de corte" para definir el umbral individual del gatekeeper (default 4.0). La badge del criterio excluyente muestra "Excluyente (corte: X.X)".
 6. **Descriptores visibles en modo activo:** Al expandir un criterio, los 7 niveles de descriptores se muestran directamente con cards coloreadas (verde ≥5, amarillo 4, rojo <4) y badges de nota.
 7. **Botón "Siguiente criterio →":** Navegación rápida al siguiente criterio con dashed border.
 8. **Footer sticky:** El panel de Cancelar/Guardar permanece fijo en la parte inferior (`position: sticky; bottom: 0`) con `z-index: 10`.
