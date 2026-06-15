@@ -3,11 +3,11 @@
 /**
  * EvalUA v3.0 — CRUD de Rúbricas (Iframe)
  * Listado, creación y edición con versionamiento compacto.
- * Diseño inspirado en mockup: inputs compactos, descriptores colapsables,
- * badges coloreados, switch toggle para excluyente.
+ * Patrón accordion: un solo criterio expandido a la vez,
+ * scroll-into-view, footer sticky, datos generales colapsable.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { v4 as uuid } from "uuid";
 
 interface RubricaItem {
@@ -78,13 +78,17 @@ export default function RubricasPage() {
       esExcluyente: boolean;
       notaCorte: number;
       descripcion: string;
-      descriptoresOpen: boolean;
       descriptores: Array<{ notaNivel: number; etiqueta: string; bulletPoints: string[] }>;
     }>
   >([]);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [copiadoId, setCopiadoId] = useState<string | null>(null);
   const [listaExpandida, setListaExpandida] = useState<string | null>(null);
+
+  // ── Accordion state ──
+  const [criterioActivoIdx, setCriterioActivoIdx] = useState<number | null>(0);
+  const [datosGeneralesAbierto, setDatosGeneralesAbierto] = useState(true);
+  const criterioRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const headers = { Authorization: "Bearer dev-token", "Content-Type": "application/json" };
 
@@ -117,10 +121,11 @@ export default function RubricasPage() {
         esExcluyente: false,
         notaCorte: 4.0,
         descripcion: "",
-        descriptoresOpen: false,
         descriptores: crearDescriptoresDefault(),
       },
     ]);
+    setCriterioActivoIdx(0);
+    setDatosGeneralesAbierto(true);
   };
 
   const handleEditar = (rubrica: RubricaItem) => {
@@ -137,10 +142,25 @@ export default function RubricasPage() {
         esExcluyente: c.esExcluyente,
         notaCorte: c.notaCorte ?? 4.0,
         descripcion: c.descripcion || "",
-        descriptoresOpen: false,
         descriptores: c.descriptores.length >= 7 ? c.descriptores : crearDescriptoresDefault(),
       }))
     );
+    setCriterioActivoIdx(0);
+    setDatosGeneralesAbierto(false);
+  };
+
+  const toggleCriterioActivo = (idx: number) => {
+    const nuevo = criterioActivoIdx === idx ? null : idx;
+    setCriterioActivoIdx(nuevo);
+    if (nuevo !== null) {
+      // Scroll-into-view con delay para que el DOM se actualice
+      requestAnimationFrame(() => {
+        const el = criterioRefs.current.get(nuevo);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    }
   };
 
   const handleGuardar = async () => {
@@ -279,43 +299,61 @@ export default function RubricasPage() {
           <span className="embed-badge">{vista === "crear" ? "CREAR" : "EDITAR"}</span>
         </div>
 
-        <div className="embed-content overflow-y-auto px-3 py-3 space-y-3">
-          {/* ── Datos generales ── */}
-          <div className="embed-criterion-card space-y-2.5">
-            <div
-              className="text-[10px] font-semibold uppercase tracking-[0.18em]"
-              style={{ color: "rgba(57,64,73,0.55)" }}
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3" style={{ paddingBottom: "4rem" }}>
+          {/* ── Datos generales (colapsable) ── */}
+          <div className="embed-criterion-card">
+            <button
+              className="w-full flex items-center justify-between py-0.5"
+              type="button"
+              onClick={() => setDatosGeneralesAbierto(!datosGeneralesAbierto)}
             >
-              Datos generales
-            </div>
-            <div className="grid gap-2 sm:grid-cols-[1fr_auto] items-end">
-              <div className="space-y-1">
-                <label className="text-[10px] font-semibold" style={{ color: "rgba(57,64,73,0.6)" }}>
-                  Título
-                </label>
-                <input
-                  className="embed-input-compact"
-                  value={titulo}
-                  onChange={(e) => setTitulo(e.target.value)}
-                  placeholder="Ej: Proyecto de Ingeniería de Software"
-                />
+              <div className="flex items-center gap-2">
+                <span
+                  className="text-[10px] font-semibold uppercase tracking-[0.18em]"
+                  style={{ color: "rgba(57,64,73,0.55)" }}
+                >
+                  Datos generales
+                </span>
+                {titulo.trim() && (
+                  <span className="text-[10px] truncate max-w-[12rem]" style={{ color: "rgba(57,64,73,0.4)" }}>
+                    {titulo}
+                  </span>
+                )}
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-semibold" style={{ color: "rgba(57,64,73,0.6)" }}>
-                  Nota aprobación
-                </label>
-                <input
-                  className="embed-input-compact"
-                  type="number"
-                  step="0.1"
-                  min="1.0"
-                  max="7.0"
-                  value={notaAprobacion}
-                  onChange={(e) => setNotaAprobacion(parseFloat(e.target.value) || 4.0)}
-                  style={{ width: "5rem" }}
-                />
+              <span style={{ fontSize: "10px", color: "rgba(57,64,73,0.4)" }}>
+                {datosGeneralesAbierto ? "▲" : "▼"}
+              </span>
+            </button>
+            {datosGeneralesAbierto && (
+              <div className="grid gap-2 sm:grid-cols-[1fr_auto] items-end mt-2.5">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-semibold" style={{ color: "rgba(57,64,73,0.6)" }}>
+                    Título
+                  </label>
+                  <input
+                    className="embed-input-compact"
+                    value={titulo}
+                    onChange={(e) => setTitulo(e.target.value)}
+                    placeholder="Ej: Proyecto de Ingeniería de Software"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-semibold" style={{ color: "rgba(57,64,73,0.6)" }}>
+                    Nota aprobación
+                  </label>
+                  <input
+                    className="embed-input-compact"
+                    type="number"
+                    step="0.1"
+                    min="1.0"
+                    max="7.0"
+                    value={notaAprobacion}
+                    onChange={(e) => setNotaAprobacion(parseFloat(e.target.value) || 4.0)}
+                    style={{ width: "5rem" }}
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* ── Header de criterios ── */}
@@ -341,6 +379,7 @@ export default function RubricasPage() {
                 type="button"
                 onClick={() => {
                   const newId = uuid();
+                  const newIdx = criterios.length;
                   setCriterios([
                     ...criterios,
                     {
@@ -351,10 +390,17 @@ export default function RubricasPage() {
                       esExcluyente: false,
                       notaCorte: 4.0,
                       descripcion: "",
-                      descriptoresOpen: false,
                       descriptores: crearDescriptoresDefault(),
                     },
                   ]);
+                  // Expandir el nuevo criterio y scrollear
+                  setCriterioActivoIdx(newIdx);
+                  requestAnimationFrame(() => {
+                    setTimeout(() => {
+                      const el = criterioRefs.current.get(newIdx);
+                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 50);
+                  });
                 }}
               >
                 + Criterio
@@ -362,237 +408,327 @@ export default function RubricasPage() {
             </div>
           </div>
 
-          {/* ── Lista de criterios ── */}
+          {/* ── Lista de criterios (accordion) ── */}
           <div className="space-y-2">
-            {criterios.map((crit, idx) => (
-              <div key={crit.id} className="embed-criterion-card space-y-2">
-                {/* Fila 1: Grid compacto nombre | ponderación | tipo | acciones */}
-                <div className="grid gap-2 items-start" style={{ gridTemplateColumns: "1fr auto auto auto" }}>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold" style={{ color: "rgba(57,64,73,0.55)" }}>
-                      Nombre
-                    </label>
-                    <input
-                      className="embed-input-compact"
-                      placeholder="Nombre del criterio"
-                      value={crit.nombre}
-                      onChange={(e) => {
-                        const n = [...criterios];
-                        n[idx].nombre = e.target.value;
-                        setCriterios(n);
-                      }}
-                    />
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold" style={{ color: "rgba(57,64,73,0.55)" }}>
-                      Peso
-                    </label>
-                    <input
-                      className="embed-input-compact"
-                      type="number"
-                      step="0.05"
-                      min="0"
-                      max="1"
-                      placeholder="0.25"
-                      value={crit.ponderacion}
-                      onChange={(e) => {
-                        const n = [...criterios];
-                        n[idx].ponderacion = parseFloat(e.target.value) || 0;
-                        setCriterios(n);
-                      }}
-                      style={{ width: "4.5rem" }}
-                    />
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold" style={{ color: "rgba(57,64,73,0.55)" }}>
-                      Tipo
-                    </label>
-                    <select
-                      className="embed-input-compact"
-                      value={crit.tipo}
-                      onChange={(e) => {
-                        const n = [...criterios];
-                        n[idx].tipo = e.target.value;
-                        setCriterios(n);
-                      }}
-                      style={{ width: "7rem" }}
+            {criterios.map((crit, idx) => {
+              const isActive = criterioActivoIdx === idx;
+              return (
+                <div
+                  key={crit.id}
+                  className="embed-criterion-card space-y-2"
+                  ref={(el) => {
+                    if (el) criterioRefs.current.set(idx, el);
+                    else criterioRefs.current.delete(idx);
+                  }}
+                  style={isActive ? { borderColor: "var(--color-evalUA1)", boxShadow: "0 0 0 1px rgba(234,118,0,0.15)" } : undefined}
+                >
+                  {/* ── Header colapsado: resumen o formulario ── */}
+                  {!isActive ? (
+                    /* Estado colapsado: resumen compacto */
+                    <div
+                      className="flex items-center justify-between gap-2 cursor-pointer py-0.5"
+                      onClick={() => toggleCriterioActivo(idx)}
+                      role="button"
+                      tabIndex={0}
                     >
-                      <option value="ESTRUCTURAL">Estructural</option>
-                      <option value="COMPLEMENTARIO">Complementario</option>
-                    </select>
-                  </div>
-                  <div className="flex items-end h-full pb-0.5">
-                    <button
-                      className="text-[11px] px-1.5 py-0.5 rounded hover:bg-red-50 transition-colors"
-                      style={{ color: "var(--color-evalUA8)" }}
-                      type="button"
-                      title="Eliminar criterio"
-                      onClick={() => {
-                        const n = criterios.filter((_, i) => i !== idx);
-                        setCriterios(n);
-                      }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </div>
-
-                {/* Fila 2: Excluyente switch + badges */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <div
-                    className={`embed-switch ${crit.esExcluyente ? "active" : ""}`}
-                    onClick={() => {
-                      const n = [...criterios];
-                      n[idx].esExcluyente = !n[idx].esExcluyente;
-                      setCriterios(n);
-                    }}
-                    role="switch"
-                    aria-checked={crit.esExcluyente}
-                    tabIndex={0}
-                  />
-                  <span className="text-[10px] font-semibold" style={{ color: "rgba(57,64,73,0.65)" }}>
-                    Excluyente
-                  </span>
-                  {crit.esExcluyente && (
-                    <>
-                      <span className="embed-badge-sm danger">Gatekeeper</span>
-                      <input
-                        className="embed-input-xs"
-                        type="number"
-                        step="0.1"
-                        min="1.0"
-                        max="7.0"
-                        value={crit.notaCorte}
-                        onChange={(e) => {
-                          const n = [...criterios];
-                          n[idx].notaCorte = parseFloat(e.target.value) || 4.0;
-                          setCriterios(n);
-                        }}
-                        style={{ width: "3.5rem" }}
-                        placeholder="Corte"
-                      />
-                    </>
-                  )}
-                  <div className="ml-auto">
-                    <span className="embed-badge-sm" style={{
-                      backgroundColor: crit.tipo === "ESTRUCTURAL" ? "var(--embed-primary-light)" : "rgba(57,64,73,0.06)",
-                      color: crit.tipo === "ESTRUCTURAL" ? "var(--color-evalUA1)" : "rgba(57,64,73,0.6)",
-                    }}>
-                      {crit.tipo === "ESTRUCTURAL" ? "Estr." : "Comp."} · {(crit.ponderacion * 100).toFixed(0)}%
-                    </span>
-                  </div>
-                </div>
-
-                {/* Fila 3: Descriptores toggle */}
-                <div>
-                  <button
-                    className="embed-button-outline text-[10px] w-full py-1 px-2 rounded-md flex items-center justify-between"
-                    type="button"
-                    onClick={() => {
-                      const n = [...criterios];
-                      n[idx].descriptoresOpen = !n[idx].descriptoresOpen;
-                      setCriterios(n);
-                    }}
-                  >
-                    <span>Descriptores (7 niveles)</span>
-                    <span style={{ fontSize: "10px" }}>
-                      {crit.descriptoresOpen ? "▲" : "▼"}
-                    </span>
-                  </button>
-                </div>
-
-                {/* Descriptores expandidos */}
-                {crit.descriptoresOpen && (
-                  <div className="space-y-1.5 mt-1">
-                    {[...crit.descriptores]
-                      .sort((a, b) => b.notaNivel - a.notaNivel)
-                      .map((desc) => (
-                        <div
-                          key={desc.notaNivel}
-                          className={`embed-descriptor-card ${descriptorLevelClass(desc.notaNivel)}`}
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="embed-badge-sm neutral" style={{ minWidth: "1.2rem", textAlign: "center" }}>
+                          {idx + 1}
+                        </span>
+                        <span className="text-xs font-medium truncate" style={{ color: crit.nombre ? "var(--color-evalUA2)" : "rgba(57,64,73,0.4)" }}>
+                          {crit.nombre || "Sin nombre"}
+                        </span>
+                        <span className={`embed-badge-sm ${crit.tipo === "ESTRUCTURAL" ? "primary" : "neutral"}`}>
+                          {crit.tipo === "ESTRUCTURAL" ? "Estr." : "Comp."}
+                        </span>
+                        <span className="embed-badge-sm neutral">{(crit.ponderacion * 100).toFixed(0)}%</span>
+                        {crit.esExcluyente && (
+                          <span className="embed-badge-sm danger">GK</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          className="text-[10px] px-1 hover:opacity-70"
+                          style={{ color: "var(--color-evalUA8)" }}
+                          type="button"
+                          title="Eliminar criterio"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const n = criterios.filter((_, i) => i !== idx);
+                            setCriterios(n);
+                            if (criterioActivoIdx === idx) setCriterioActivoIdx(null);
+                            else if (criterioActivoIdx !== null && criterioActivoIdx > idx) {
+                              setCriterioActivoIdx(criterioActivoIdx - 1);
+                            }
+                          }}
                         >
-                          <div className="flex items-start gap-2">
-                            <span
-                              className={`embed-badge-sm ${descriptorBadgeClass(desc.notaNivel)} shrink-0`}
-                              style={{ minWidth: "2.5rem", textAlign: "center" }}
-                            >
-                              {desc.notaNivel}
-                            </span>
-                            <div className="flex-1 min-w-0 space-y-1">
-                              <input
-                                className="embed-input-xs"
-                                placeholder="Etiqueta"
-                                value={desc.etiqueta}
-                                onChange={(e) =>
-                                  actualizarDescriptor(idx, desc.notaNivel, "etiqueta", e.target.value)
-                                }
-                              />
-                              <div className="space-y-1">
-                                {desc.bulletPoints.map((bp, bpIdx) => (
-                                  <div key={bpIdx} className="flex items-center gap-1">
-                                    <span style={{ color: "rgba(57,64,73,0.3)", fontSize: "10px" }}>•</span>
+                          ✕
+                        </button>
+                        <span style={{ fontSize: "10px", color: "rgba(57,64,73,0.3)" }}>▼</span>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Estado expandido: formulario completo */
+                    <>
+                      {/* Fila superior: indicador de progreso + cerrar */}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="embed-badge-sm primary">
+                          Criterio {idx + 1} de {criterios.length}
+                        </span>
+                        <button
+                          className="text-[10px] px-1.5 py-0.5 rounded hover:bg-gray-100"
+                          style={{ color: "rgba(57,64,73,0.5)" }}
+                          type="button"
+                          onClick={() => toggleCriterioActivo(idx)}
+                        >
+                          ▲ Colapsar
+                        </button>
+                      </div>
+
+                      {/* Fila 1: Grid compacto nombre | ponderación | tipo | acciones */}
+                      <div className="grid gap-2 items-start" style={{ gridTemplateColumns: "1fr auto auto auto" }}>
+                        <div className="space-y-0.5">
+                          <label className="text-[10px] font-semibold" style={{ color: "rgba(57,64,73,0.55)" }}>
+                            Nombre
+                          </label>
+                          <input
+                            className="embed-input-compact"
+                            placeholder="Nombre del criterio"
+                            value={crit.nombre}
+                            onChange={(e) => {
+                              const n = [...criterios];
+                              n[idx].nombre = e.target.value;
+                              setCriterios(n);
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-0.5">
+                          <label className="text-[10px] font-semibold" style={{ color: "rgba(57,64,73,0.55)" }}>
+                            Peso
+                          </label>
+                          <input
+                            className="embed-input-compact"
+                            type="number"
+                            step="0.05"
+                            min="0"
+                            max="1"
+                            placeholder="0.25"
+                            value={crit.ponderacion}
+                            onChange={(e) => {
+                              const n = [...criterios];
+                              n[idx].ponderacion = parseFloat(e.target.value) || 0;
+                              setCriterios(n);
+                            }}
+                            style={{ width: "4.5rem" }}
+                          />
+                        </div>
+                        <div className="space-y-0.5">
+                          <label className="text-[10px] font-semibold" style={{ color: "rgba(57,64,73,0.55)" }}>
+                            Tipo
+                          </label>
+                          <select
+                            className="embed-input-compact"
+                            value={crit.tipo}
+                            onChange={(e) => {
+                              const n = [...criterios];
+                              n[idx].tipo = e.target.value;
+                              setCriterios(n);
+                            }}
+                            style={{ width: "7rem" }}
+                          >
+                            <option value="ESTRUCTURAL">Estructural</option>
+                            <option value="COMPLEMENTARIO">Complementario</option>
+                          </select>
+                        </div>
+                        <div className="flex items-end h-full pb-0.5">
+                          <button
+                            className="text-[11px] px-1.5 py-0.5 rounded hover:bg-red-50 transition-colors"
+                            style={{ color: "var(--color-evalUA8)" }}
+                            type="button"
+                            title="Eliminar criterio"
+                            onClick={() => {
+                              const n = criterios.filter((_, i) => i !== idx);
+                              setCriterios(n);
+                              setCriterioActivoIdx(null);
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Fila 2: Excluyente switch + badges */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <div
+                          className={`embed-switch ${crit.esExcluyente ? "active" : ""}`}
+                          onClick={() => {
+                            const n = [...criterios];
+                            n[idx].esExcluyente = !n[idx].esExcluyente;
+                            setCriterios(n);
+                          }}
+                          role="switch"
+                          aria-checked={crit.esExcluyente}
+                          tabIndex={0}
+                        />
+                        <span className="text-[10px] font-semibold" style={{ color: "rgba(57,64,73,0.65)" }}>
+                          Excluyente
+                        </span>
+                        {crit.esExcluyente && (
+                          <>
+                            <span className="embed-badge-sm danger">Gatekeeper</span>
+                            <input
+                              className="embed-input-xs"
+                              type="number"
+                              step="0.1"
+                              min="1.0"
+                              max="7.0"
+                              value={crit.notaCorte}
+                              onChange={(e) => {
+                                const n = [...criterios];
+                                n[idx].notaCorte = parseFloat(e.target.value) || 4.0;
+                                setCriterios(n);
+                              }}
+                              style={{ width: "3.5rem" }}
+                              placeholder="Corte"
+                            />
+                          </>
+                        )}
+                        <div className="ml-auto">
+                          <span
+                            className="embed-badge-sm"
+                            style={{
+                              backgroundColor:
+                                crit.tipo === "ESTRUCTURAL"
+                                  ? "var(--embed-primary-light)"
+                                  : "rgba(57,64,73,0.06)",
+                              color:
+                                crit.tipo === "ESTRUCTURAL"
+                                  ? "var(--color-evalUA1)"
+                                  : "rgba(57,64,73,0.6)",
+                            }}
+                          >
+                            {crit.tipo === "ESTRUCTURAL" ? "Estr." : "Comp."} ·{" "}
+                            {(crit.ponderacion * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Descriptores (siempre visibles en modo activo) */}
+                      <div>
+                        <div
+                          className="text-[10px] font-semibold py-1 px-1"
+                          style={{ color: "rgba(57,64,73,0.55)" }}
+                        >
+                          Descriptores (7 niveles)
+                        </div>
+                        <div className="space-y-1.5">
+                          {[...crit.descriptores]
+                            .sort((a, b) => b.notaNivel - a.notaNivel)
+                            .map((desc) => (
+                              <div
+                                key={desc.notaNivel}
+                                className={`embed-descriptor-card ${descriptorLevelClass(desc.notaNivel)}`}
+                              >
+                                <div className="flex items-start gap-2">
+                                  <span
+                                    className={`embed-badge-sm ${descriptorBadgeClass(desc.notaNivel)} shrink-0`}
+                                    style={{ minWidth: "2.5rem", textAlign: "center" }}
+                                  >
+                                    {desc.notaNivel}
+                                  </span>
+                                  <div className="flex-1 min-w-0 space-y-1">
                                     <input
-                                      className="embed-input-xs flex-1"
-                                      placeholder="Punto clave"
-                                      value={bp}
+                                      className="embed-input-xs"
+                                      placeholder="Etiqueta"
+                                      value={desc.etiqueta}
                                       onChange={(e) =>
-                                        actualizarBulletPoint(idx, desc.notaNivel, bpIdx, e.target.value)
+                                        actualizarDescriptor(idx, desc.notaNivel, "etiqueta", e.target.value)
                                       }
                                     />
-                                    <button
-                                      className="text-[10px] px-1 hover:opacity-70"
-                                      style={{ color: "var(--color-evalUA8)" }}
-                                      type="button"
-                                      onClick={() => eliminarBulletPoint(idx, desc.notaNivel, bpIdx)}
-                                    >
-                                      ✕
-                                    </button>
+                                    <div className="space-y-1">
+                                      {desc.bulletPoints.map((bp, bpIdx) => (
+                                        <div key={bpIdx} className="flex items-center gap-1">
+                                          <span style={{ color: "rgba(57,64,73,0.3)", fontSize: "10px" }}>•</span>
+                                          <input
+                                            className="embed-input-xs flex-1"
+                                            placeholder="Punto clave"
+                                            value={bp}
+                                            onChange={(e) =>
+                                              actualizarBulletPoint(idx, desc.notaNivel, bpIdx, e.target.value)
+                                            }
+                                          />
+                                          <button
+                                            className="text-[10px] px-1 hover:opacity-70"
+                                            style={{ color: "var(--color-evalUA8)" }}
+                                            type="button"
+                                            onClick={() => eliminarBulletPoint(idx, desc.notaNivel, bpIdx)}
+                                          >
+                                            ✕
+                                          </button>
+                                        </div>
+                                      ))}
+                                      <button
+                                        className="text-[10px] font-semibold"
+                                        style={{ color: "var(--color-evalUA1)" }}
+                                        type="button"
+                                        onClick={() => agregarBulletPoint(idx, desc.notaNivel)}
+                                      >
+                                        + Punto
+                                      </button>
+                                    </div>
                                   </div>
-                                ))}
-                                <button
-                                  className="text-[10px] font-semibold"
-                                  style={{ color: "var(--color-evalUA1)" }}
-                                  type="button"
-                                  onClick={() => agregarBulletPoint(idx, desc.notaNivel)}
-                                >
-                                  + Punto
-                                </button>
+                                </div>
                               </div>
-                            </div>
-                          </div>
+                            ))}
                         </div>
-                      ))}
-                  </div>
-                )}
-              </div>
-            ))}
+                      </div>
+
+                      {/* Botón para avanzar al siguiente criterio */}
+                      {idx < criterios.length - 1 && (
+                        <button
+                          className="w-full text-[10px] py-1.5 rounded-md font-semibold hover:bg-gray-50 transition-colors"
+                          style={{ color: "var(--color-evalUA1)", border: "1px dashed rgba(234,118,0,0.3)" }}
+                          type="button"
+                          onClick={() => toggleCriterioActivo(idx + 1)}
+                        >
+                          Siguiente criterio →
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Error */}
           {error && (
-            <div className="text-xs font-medium px-2 py-1.5 rounded-md" style={{ color: "var(--color-evalUA8)", backgroundColor: "rgb(254,242,242)" }}>
+            <div
+              className="text-xs font-medium px-2 py-1.5 rounded-md"
+              style={{ color: "var(--color-evalUA8)", backgroundColor: "rgb(254,242,242)" }}
+            >
               {error}
             </div>
           )}
+        </div>
 
-          {/* Footer acciones */}
-          <div className="embed-panel-footer">
-            <button
-              className="embed-button-outline text-xs px-3 py-1.5 rounded-md font-semibold"
-              onClick={() => {
-                setVista("lista");
-                setError(null);
-              }}
-            >
-              Cancelar
-            </button>
-            <button
-              className="embed-button-primary text-xs px-3 py-1.5 rounded-md font-semibold"
-              onClick={handleGuardar}
-            >
-              Guardar Rúbrica
-            </button>
-          </div>
+        {/* Footer sticky */}
+        <div className="embed-panel-footer" style={{ position: "sticky", bottom: 0, zIndex: 10 }}>
+          <button
+            className="embed-button-outline text-xs px-3 py-1.5 rounded-md font-semibold"
+            onClick={() => {
+              setVista("lista");
+              setError(null);
+            }}
+          >
+            Cancelar
+          </button>
+          <button
+            className="embed-button-primary text-xs px-3 py-1.5 rounded-md font-semibold"
+            onClick={handleGuardar}
+          >
+            Guardar Rúbrica
+          </button>
         </div>
       </div>
     );
