@@ -7,7 +7,7 @@ services:
   # --- evalUA Microservice (Next.js) ---
   evalua-app:
     build:
-      context: ../v0
+      context: ../src
       dockerfile: Dockerfile
     container_name: evalua-app
     restart: unless-stopped
