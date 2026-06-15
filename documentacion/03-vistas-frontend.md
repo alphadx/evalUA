@@ -96,10 +96,14 @@ Como medida del estado del arte para garantizar la integridad de la interfaz, el
 
 #### Elementos Clave de la Interfaz:
 1. **Layout de Columna Única:** Se elimina cualquier sidebar. Toda la superficie se dedica a la visualización clara del criterio activo o de la pantalla de resumen.
-2. **Tarjetas de Descriptores Interactivas:** Cada descriptor se muestra como un botón de alto contraste. Al hacer clic:
-   - Se marca el nivel visualmente (usando el color `--color-evalUA4--` de selección).
-   - Se guarda el puntaje temporalmente en la evaluación.
-   - El sistema avanza automáticamente al siguiente criterio. Al calificar el último criterio, avanza automáticamente a la pantalla de Resumen.
+2. **Tarjetas de Descriptores Interactivas:** Cada descriptor se muestra como un botón de alto contraste con:
+   - **Círculo de nota** (28px) con color semántico: verde (≥5), naranja (4), amarillo (3), rojo (≤2).
+   - **Etiqueta del nivel** (ej: "Excelente") y check mark (✓) si está seleccionado.
+   - **Bullet points concatenados:** Los puntos clave del descriptor se muestran como texto corrido unidos con guiones (" — "), filtrando entradas vacías. El contenedor crece naturalmente según el largo del texto.
+   - Al hacer clic:
+     - Se marca el nivel visualmente (borde izquierdo 4px + fondo `--color-evalUA4--`).
+     - Se guarda el puntaje temporalmente en la evaluación.
+     - El sistema avanza automáticamente al siguiente criterio (con delay de 400ms). Al calificar el último criterio, avanza automáticamente a la pantalla de Resumen.
 3. **Barra de Cálculo Acumulado:** Franja inferior fija (`sticky bottom-0`) que muestra en tiempo real la nota final calculada basada en las selecciones actuales. Incorpora alertas semánticas si se fallan criterios de la regla Gatekeeper.
 4. **Auto-save en Segundo Plano:** Cada clic de calificación o inserción de comentarios en el campo de observaciones dispara una petición asíncrona `PUT /api/evaluaciones/[id]` para evitar pérdida de progreso por desconexiones o cierres de ventana (transicionando el borrador a `EN_REVISION` cuando se entra a la pantalla de resumen).
 5. **Acción Final (Visualización de Resumen):** Al calificar el último criterio, el wizard avanza automáticamente al paso de Resumen en lugar de habilitar directamente la finalización desde el criterio.
@@ -142,8 +146,34 @@ Como medida del estado del arte para garantizar la integridad de la interfaz, el
 - **Ruta:** `/embed/rubricas?jwt={token}`
 - **Acceso:** Roles `MANTENEDOR` y `ADMINISTRADOR`.
 - **Funcionalidad:** Listado de rúbricas filtrado según `usuario_id` y claim `puede_ver_rubricas_ajenas`. Creación y edición de rúbricas con formulario dinámico. Versionamiento inmutable al editar rúbricas con evaluaciones previas. Al crear una rúbrica, el evento `postMessage` `evalua.rubrica.created` retorna el `rubricaId` generado al Host.
-- **ID de referencia visible:** Cada rúbrica exhibe su `_id` (UUID) con botón de copiar al portapapeles, para que el mantenedor pueda comunicar el identificador al equipo de integración del Host.
-- **Viewport:** La interfaz completa del CRUD se adapta a los límites de `1029x466px` utilizando scrollareas locales.
+- **ID de referencia visible:** Cada rúbrica exhibe su `_id` (UUID) en contenedor dashed con botón de copiar al portapapeles, para que el mantenedor pueda comunicar el identificador al equipo de integración del Host.
+
+#### Diseño de la Vista Lista
+- **Cards compactas con accent bar:** Cada rúbrica se muestra como una card con barra de acento superior de 3px (verde si activa, gris si inactiva).
+- **Badges compactos:** Estado (Activa/Inactiva), versión (v{n}), y cantidad de criterios como badges inline ultra compactos.
+- **Expandible:** Cada card puede expandirse para mostrar la vista previa de criterios con badges de ponderación y tipo (E/C).
+
+#### Diseño del Formulario Crear/Editar (Accordion)
+El formulario implementa un patrón de **accordion** optimizado para el viewport de 466px:
+
+1. **Datos Generales Colapsables:** La sección de título y nota de aprobación puede colapsarse. Cuando está colapsada, muestra el título como preview inline.
+2. **Accordion de Criterios (un solo criterio expandido a la vez):**
+   - Los criterios colapsados muestran un resumen compacto: número, nombre, badges de tipo/ponderación/gatekeeper.
+   - Solo un criterio puede estar expandido a la vez (`criterioActivoIdx`).
+   - El criterio activo tiene borde naranja y sombra sutil como indicador visual.
+   - Al expandir, se muestra "Criterio X de N" como indicador de progreso.
+3. **Scroll-into-view:** Al expandir un criterio o agregar uno nuevo, el contenedor hace scroll suave (`scrollIntoView({ behavior: 'smooth', block: 'start' })`) para mantener el criterio activo visible.
+4. **Inputs compactos:** Clases CSS `embed-input-compact` (h-7, text-xs) e `embed-input-xs` (h-6, text-[11px]) para minimizar la altura ocupada.
+5. **Switch toggle:** El toggle de "Excluyente (Gatekeeper)" usa un switch CSS personalizado en vez de checkbox nativo.
+6. **Descriptores visibles en modo activo:** Al expandir un criterio, los 7 niveles de descriptores se muestran directamente con cards coloreadas (verde ≥5, amarillo 4, rojo <4) y badges de nota.
+7. **Botón "Siguiente criterio →":** Navegación rápida al siguiente criterio con dashed border.
+8. **Footer sticky:** El panel de Cancelar/Guardar permanece fijo en la parte inferior (`position: sticky; bottom: 0`) con `z-index: 10`.
+
+#### Contadores y Validación Visual
+- **Ponderaciones Σ:** Badge inline que muestra la suma actual y ✓/✗ según validez (debe ser 1.0 ±0.001).
+- **Error display:** Alerta roja con fondo rojo pastel para errores de validación.
+
+- **Viewport:** La interfaz completa del CRUD se adapta a los límites de `1029x466px` con scroll local y footer sticky.
 
 ### 3.5 Dashboard de Métricas (Iframe)
 - **Ruta:** `/embed/dashboard?jwt={token}`
@@ -195,3 +225,46 @@ El diseño visual de las vistas utiliza de forma estricta las variables CSS inst
 - **Peligro (`--color-evalUA8--` - `#C8102E`):** Notas reprobatorias (< 4.0), fallos de exclusión Gatekeeper.
 - **Neutro Oscuro (`--color-evalUA2--` - `#394049`):** Texto principal e interfaces tipográficas.
 - **Fondo Tarjetas (`--color-evalUA16--` - `#fffefd`):** Contenedores de descriptores del wizard.
+
+---
+
+## 6. Clases CSS Utilitarias (`globals.css`)
+
+### 6.1 Clases Base (Existentes)
+
+| Clase | Uso | Dimensión |
+|---|---|---|
+| `.embed-frame` | Contenedor raíz del viewport embebido | `w-full min-h-[466px]` |
+| `.embed-header` | Barra superior con título y badge | `padding: 0.85rem 1.25rem` |
+| `.embed-content` | Área de scroll local | `flex: 1; overflow: hidden` |
+| `.embed-panel` | Card con borde y sombra | `border-radius: 1.25rem` |
+| `.embed-input` / `.embed-textarea` | Inputs estándar | `padding: 0.65rem 0.75rem` |
+| `.embed-button-primary` | Botón acción principal | bg: `--color-evalUA1` |
+| `.embed-button-outline` | Botón secundario | border: `rgba(57,64,73,0.2)` |
+
+### 6.2 Clases Compactas (Nuevas v3.1)
+
+Optimizadas para el viewport de 466px donde el espacio vertical es crítico:
+
+| Clase | Uso | Dimensión |
+|---|---|---|
+| `.embed-input-compact` | Inputs compactos para formularios | `padding: 0.35rem 0.55rem; font-size: 0.75rem` |
+| `.embed-input-xs` | Inputs extra compactos (descriptores) | `padding: 0.25rem 0.45rem; font-size: 0.6875rem` |
+| `.embed-card-compact` | Card con accent bar superior | `border-radius: 1rem; overflow: hidden` |
+| `.embed-card-accent` | Barra de acento 3px (success/muted) | `height: 3px; position: absolute` |
+| `.embed-criterion-card` | Card de criterio en accordion | `padding: 0.65rem 0.75rem; border-radius: 0.75rem` |
+| `.embed-descriptor-card` | Card de descriptor (level-high/mid/low) | `padding: 0.4rem 0.55rem; border-radius: 0.5rem` |
+| `.embed-switch` | Toggle switch CSS puro | `width: 2rem; height: 1rem` |
+| `.embed-badge-sm` | Badge ultra compacto | `font-size: 0.5625rem; padding: 0.1rem 0.4rem` |
+
+#### Variantes de `.embed-badge-sm`:
+- `.success` — verde (activo, aprobado)
+- `.warning` — amarillo (pendiente)
+- `.danger` — rojo (gatekeeper, error)
+- `.primary` — naranja (tipo estructural, seleccionado)
+- `.neutral` — gris (tipo complementario, versión)
+
+#### Variantes de `.embed-descriptor-card`:
+- `.level-high` — fondo verde pastel (`#f0fdf4`) para notas ≥ 5
+- `.level-mid` — fondo amarillo pastel (`#fefce8`) para nota 4
+- `.level-low` — fondo rojo pastel (`#fef2f2`) para notas ≤ 3
