@@ -16,7 +16,9 @@ Para asegurar la coherencia entre el dominio del negocio y el código técnico, 
 *   **Puntaje (Score/Rating):** Calificación y observaciones asignadas por el evaluador a un criterio específico de la rúbrica durante una evaluación.
 *   **Nota (Grade):** Representación numérica del rendimiento académico en la escala estándar de **1.0 a 7.0** con dos decimales de precisión.
 *   **Exigencia (Requirement Level):** Porcentaje de logro requerido para obtener la nota mínima de aprobación (**4.0**). El estándar del proyecto es 60% ($E = 0.60$).
-*   **Gatekeeper (Regla de Exclusión):** Regla de negocio que dictamina que si un estudiante reprueba (obtiene menos de 4.0) en cualquier criterio definido como *Excluyente*, toda la evaluación se reprueba automáticamente con la nota mínima (1.0).
+*   **Gatekeeper (Regla de Exclusión):** Regla de negocio que dictamina que si un estudiante reprueba (obtiene menos de su *nota de corte*) en cualquier criterio definido como *Excluyente*, toda la evaluación se reprueba automáticamente con la nota mínima (1.0). La nota de corte es configurable por criterio (campo `notaCorte`, por defecto 4.0).
+*   **Nota de Aprobación:** Nota mínima configurable a nivel de rúbrica (campo `notaAprobacion`, por defecto 4.0) que determina si una evaluación es aprobatoria. Se define al crear o editar la rúbrica.
+*   **Nota de Corte:** Umbral configurable a nivel de criterio excluyente (campo `notaCorte`, por defecto 4.0) que determina si el Gatekeeper se activa. Se define al crear o editar un criterio marcado como excluyente.
 
 ---
 
@@ -66,6 +68,7 @@ class Criterio {
     public ponderacion: number,
     public tipo: "ESTRUCTURAL" | "COMPLEMENTARIO",
     public esExcluyente: boolean,
+    public notaCorte: number, // Umbral para Gatekeeper (default 4.0)
     public descripcion: string | null,
     public minPalabras: number | null,
     public maxPalabras: number | null,
@@ -81,6 +84,7 @@ class Criterio {
       this.ponderacion,
       this.tipo,
       this.esExcluyente,
+      this.notaCorte,
       this.descripcion,
       this.minPalabras,
       this.maxPalabras,
@@ -102,13 +106,14 @@ class Rubrica {
     public readonly version: number,
     public readonly parentRubricaId: RubricaId | null,
     public titulo: string,
+    public notaAprobacion: number, // Nota mínima para aprobar (default 4.0)
     public esActiva: boolean,
     public metadata: Record<string, unknown> | null,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
   ) {}
 
-  static create(params: { titulo: string; metadata?: Record<string, unknown> }): Rubrica {
+  static create(params: { titulo: string; notaAprobacion?: number; metadata?: Record<string, unknown> }): Rubrica {
     const id = crypto.randomUUID();
     return new Rubrica(
       id as RubricaId,
@@ -116,6 +121,7 @@ class Rubrica {
       1, // version 1
       null, // sin padre
       params.titulo,
+      params.notaAprobacion ?? 4.0,
       true,
       params.metadata || null,
       new Date(),
@@ -152,6 +158,7 @@ class Rubrica {
       this.version + 1,
       this.id,
       nuevoTitulo || this.titulo,
+      this.notaAprobacion,
       true,
       this.metadata ? { ...this.metadata } : null,
       new Date(),
@@ -345,8 +352,8 @@ class EvaluacionStrategy implements IEvaluacionStrategy {
     for (const criterio of criterios) {
       if (criterio.esExcluyente) {
         const puntaje = puntajes.find(p => p.criterioId === criterio.id);
-        // Si el criterio excluyente tiene nota menor a 4.0, se reprueba inmediatamente con 1.0
-        if (puntaje && puntaje.notaAsignada.valor < 4.0) {
+        // Si el criterio excluyente tiene nota menor a notaCorte, se reprueba inmediatamente con 1.0
+        if (puntaje && puntaje.notaAsignada.valor < criterio.notaCorte) {
           return Nota.create(1.0);
         }
       }
