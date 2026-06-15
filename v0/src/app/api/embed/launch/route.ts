@@ -5,7 +5,7 @@
 
 import { LaunchSchema } from "@/domain/schemas";
 import { createErrorResponse, getModeFromRole, verifyToken } from "@/infrastructure/auth/jwt";
-import { draftExists } from "@/infrastructure/cache/redis";
+import { draftExists, getDraft } from "@/infrastructure/cache/redis";
 import { EvaluacionModel } from "@/infrastructure/database/models/evaluacion.model";
 import { connectMongoDB } from "@/infrastructure/database/mongodb";
 import { NextRequest } from "next/server";
@@ -41,12 +41,15 @@ export async function POST(request: NextRequest) {
         // Verificar si existe borrador en Redis
         const existsInRedis = await draftExists(evaluacionId);
         if (existsInRedis) {
+          // Recuperar el borrador para obtener el rubricaId
+          const draft = await getDraft(evaluacionId);
           return Response.json({
             success: true,
             data: {
               authorized: true,
               modo: "evaluar",
               evaluacionId,
+              rubricaId: draft?.rubricaId || claims.rubrica_id || null,
               recuperado: true,
               rol: claims.rol,
               allowedModes,

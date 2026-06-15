@@ -621,7 +621,7 @@ export default function RubricasPage() {
                         >
                           Descriptores (7 niveles)
                         </div>
-                        <div className="space-y-1.5">
+                        <div className="space-y-1.5 overflow-y-auto" style={{ maxHeight: "12rem" }}>
                           {[...crit.descriptores]
                             .sort((a, b) => b.notaNivel - a.notaNivel)
                             .map((desc) => (

@@ -274,9 +274,21 @@ export default function EvaluarPage() {
           const data = launchData.data;
           if (data.rubricaId) {
             await cargarRubricaYDraft(data.rubricaId, data.evaluacionId);
-          } else if (data.modo === "ver_resultado" && data.evaluacionId) {
-            window.location.href = `/resultado?id=${data.evaluacionId}`;
-            return;
+          } else if (data.evaluacionId) {
+            // Fallback: si el launch no devolvió rubricaId, intentar
+            // obtenerlo del borrador existente en el servidor
+            const evalRes = await fetch(`/api/evaluaciones/${data.evaluacionId}`, {
+              headers: { Authorization: "Bearer dev-token" },
+            });
+            const evalData = await evalRes.json();
+            if (evalData.success && evalData.data.rubricaId) {
+              await cargarRubricaYDraft(evalData.data.rubricaId, data.evaluacionId);
+            } else if (data.modo === "ver_resultado") {
+              window.location.href = `/resultado?id=${data.evaluacionId}`;
+              return;
+            } else {
+              setError("No se pudo determinar la rúbrica para esta evaluación");
+            }
           }
         } else if (rubricaId) {
           await cargarRubricaYDraft(rubricaId, evaluacionId || undefined);
