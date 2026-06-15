@@ -1149,19 +1149,18 @@ export default function EvaluarPage() {
                               </motion.span>
                             )}
                           </div>
-                          <div className="flex flex-wrap gap-x-3 gap-y-0 mt-0.5">
-                            {desc.bulletPoints.map(
-                              (bp: string, i: number) => (
-                                <span
-                                  key={i}
-                                  className="text-[10px] leading-tight"
-                                  style={{ color: "rgba(57,64,73,0.5)" }}
-                                >
-                                  • {bp}
-                                </span>
-                              )
-                            )}
-                          </div>
+                          {desc.bulletPoints.filter((bp: string) => bp.trim()).length > 0 && (
+                            <div className="mt-0.5">
+                              <span
+                                className="text-[10px] leading-snug"
+                                style={{ color: "rgba(57,64,73,0.5)" }}
+                              >
+                                {desc.bulletPoints
+                                  .filter((bp: string) => bp.trim())
+                                  .join(" — ")}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </motion.button>
                     );
