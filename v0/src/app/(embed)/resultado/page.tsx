@@ -49,13 +49,35 @@ export default function ResultadoPage() {
     const init = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
-        const evaluacionId =
+        const token = params.get("jwt") || params.get("token");
+        let evaluacionId =
           params.get("id") ||
           params.get("evaluacion_id") ||
           params.get("evaluacionId");
 
+        // Si no hay evaluacionId directo pero hay JWT, usar el launch endpoint
+        if (!evaluacionId && token) {
+          const launchRes = await fetch("/api/embed/launch", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token }),
+          });
+          const launchData = await launchRes.json();
+          if (!launchData.success) {
+            setError(launchData.error?.detail || "Error en lanzamiento");
+            setLoading(false);
+            return;
+          }
+          evaluacionId = launchData.data.evaluacionId || null;
+          // Si el launch indica modo evaluar (borrador), redirigir
+          if (launchData.data.modo === "evaluar" && evaluacionId) {
+            window.location.href = `/evaluar?jwt=${encodeURIComponent(token)}`;
+            return;
+          }
+        }
+
         if (!evaluacionId) {
-          setError("Se requiere ID de evaluación (id o evaluacion_id)");
+          setError("Se requiere ID de evaluación (id, evaluacion_id o JWT válido)");
           setLoading(false);
           return;
         }
