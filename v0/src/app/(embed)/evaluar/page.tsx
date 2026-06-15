@@ -136,6 +136,12 @@ export default function EvaluarPage() {
   const [calculando, setCalculando] = useState(false);
   const [showObservations, setShowObservations] = useState(false);
   const [obsCriterio, setObsCriterio] = useState("");
+  const [scoredToast, setScoredToast] = useState<{
+    criterio: string;
+    nota: number;
+    etiqueta: string;
+  } | null>(null);
+  const [obsSavedToast, setObsSavedToast] = useState(false);
 
   // ── Derived state ──
 
@@ -408,9 +414,21 @@ export default function EvaluarPage() {
 
   const handleSeleccionarDescriptor = useCallback(
     async (criterioId: string, nota: number) => {
+      const crit = rubrica?.criterios.find((c) => c._id === criterioId);
+      const desc = crit?.descriptores.find((d) => d.notaNivel === nota);
       const newPuntajes = new Map(puntajes);
-      newPuntajes.set(criterioId, { nota, observaciones: null });
+      newPuntajes.set(criterioId, { nota, observaciones: puntajes.get(criterioId)?.observaciones ?? null });
       setPuntajes(newPuntajes);
+
+      // Visual feedback: toast de confirmación
+      if (crit && desc) {
+        setScoredToast({
+          criterio: crit.nombre,
+          nota,
+          etiqueta: desc.etiqueta,
+        });
+        setTimeout(() => setScoredToast(null), 1800);
+      }
 
       // Visual feedback on auto-save
       setSavingDraft(true);
@@ -992,7 +1010,57 @@ export default function EvaluarPage() {
       </div>
 
       {/* Content */}
-      <div className="embed-content overflow-y-auto">
+      <div className="embed-content overflow-y-auto" style={{ position: "relative" }}>
+        {/* Toasts de confirmación */}
+        <AnimatePresence>
+          {scoredToast && (
+            <motion.div
+              key="scored-toast"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.25 }}
+              className="absolute top-2 left-1/2 z-50 flex items-center gap-2 rounded-md px-3 py-2 shadow-md"
+              style={{
+                transform: "translateX(-50%)",
+                backgroundColor: "var(--color-evalUA21)",
+                color: "#fff",
+                fontSize: "11px",
+                fontWeight: 600,
+                maxWidth: "90%",
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span>✓</span>
+              <span>
+                {scoredToast.criterio}: Nota {scoredToast.nota} — {scoredToast.etiqueta}
+              </span>
+            </motion.div>
+          )}
+          {obsSavedToast && (
+            <motion.div
+              key="obs-toast"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.25 }}
+              className="absolute top-2 left-1/2 z-50 flex items-center gap-2 rounded-md px-3 py-2 shadow-md"
+              style={{
+                transform: "translateX(-50%)",
+                backgroundColor: "var(--color-evalUA21)",
+                color: "#fff",
+                fontSize: "11px",
+                fontWeight: 600,
+                maxWidth: "90%",
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span>✓</span>
+              <span>Observación guardada para {currentCriterio?.nombre}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <AnimatePresence mode="wait">
           {showObservations && currentCriterio ? (
             /* ── Observaciones por criterio ── */
@@ -1020,9 +1088,17 @@ export default function EvaluarPage() {
                 value={obsCriterio}
                 onChange={(e) => setObsCriterio(e.target.value)}
               />
-              <div className="flex justify-end mt-2">
+              <div className="flex justify-end gap-2 mt-2">
                 <button
                   className="embed-button-outline px-3 py-1.5 text-xs rounded"
+                  onClick={() => {
+                    setShowObservations(false);
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="embed-button-primary px-3 py-1.5 text-xs rounded"
                   onClick={() => {
                     // Save observation for this criterion
                     const newPuntajes = new Map(puntajes);
@@ -1036,9 +1112,14 @@ export default function EvaluarPage() {
                       autoSave(newPuntajes);
                     }
                     setShowObservations(false);
+                    // Toast de confirmación de observación guardada
+                    if (obsCriterio.trim()) {
+                      setObsSavedToast(true);
+                      setTimeout(() => setObsSavedToast(false), 1800);
+                    }
                   }}
                 >
-                  ✓ Listo
+                  ✓ Guardar observación
                 </button>
               </div>
             </motion.div>

@@ -245,6 +245,26 @@ export default function ResultadoPage() {
                           </div>
                         );
                       })}
+
+                    {/* Motivo / Observación del evaluador para este criterio */}
+                    {puntaje?.observaciones && (
+                      <div
+                        className="rounded-md px-3 py-2.5 mt-1 text-xs"
+                        style={{
+                          backgroundColor: "rgba(234,118,0,0.06)",
+                          borderLeft: "3px solid var(--color-evalUA1)",
+                          color: "rgba(57,64,73,0.75)",
+                        }}
+                      >
+                        <span
+                          className="font-semibold block mb-1"
+                          style={{ color: "var(--color-evalUA2)" }}
+                        >
+                          💬 Motivo de la calificación:
+                        </span>
+                        {puntaje.observaciones}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
