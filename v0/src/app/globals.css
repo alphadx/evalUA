@@ -253,6 +253,172 @@
   color: var(--color-evalUA2);
 }
 
+/* ── Compact input variants ── */
+.embed-input-compact {
+  width: 100%;
+  border: 1px solid rgba(57, 64, 73, 0.18);
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.55rem;
+  background: #ffffff;
+  color: var(--color-evalUA2);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  transition: border-color 0.15s ease;
+}
+
+.embed-input-compact:focus {
+  outline: none;
+  border-color: var(--color-evalUA1);
+  box-shadow: 0 0 0 2px rgba(234, 118, 0, 0.1);
+}
+
+.embed-input-xs {
+  width: 100%;
+  border: 1px solid rgba(57, 64, 73, 0.15);
+  border-radius: 0.4rem;
+  padding: 0.25rem 0.45rem;
+  background: #ffffff;
+  color: var(--color-evalUA2);
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  transition: border-color 0.15s ease;
+}
+
+.embed-input-xs:focus {
+  outline: none;
+  border-color: var(--color-evalUA1);
+  box-shadow: 0 0 0 1.5px rgba(234, 118, 0, 0.1);
+}
+
+/* ── Compact card with accent bar ── */
+.embed-card-compact {
+  position: relative;
+  background: var(--embed-surface);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  overflow: hidden;
+}
+
+.embed-card-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.embed-card-accent.success {
+  background-color: var(--color-evalUA21);
+}
+
+.embed-card-accent.muted {
+  background-color: #9ca3af;
+}
+
+/* ── Compact criterion form ── */
+.embed-criterion-card {
+  background: var(--embed-surface);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  transition: box-shadow 0.15s ease;
+}
+
+.embed-criterion-card:hover {
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+/* ── Compact descriptor card ── */
+.embed-descriptor-card {
+  border: 1px solid rgba(229, 231, 235, 0.4);
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.55rem;
+}
+
+.embed-descriptor-card.level-high {
+  background: #f0fdf4;
+}
+
+.embed-descriptor-card.level-mid {
+  background: #fefce8;
+}
+
+.embed-descriptor-card.level-low {
+  background: #fef2f2;
+}
+
+/* ── Toggle switch ── */
+.embed-switch {
+  position: relative;
+  width: 2rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background: rgba(57, 64, 73, 0.2);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.embed-switch.active {
+  background-color: var(--color-evalUA1);
+}
+
+.embed-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.embed-switch.active::after {
+  transform: translateX(1rem);
+}
+
+/* ── Badge variants ── */
+.embed-badge-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1rem 0.4rem;
+  border-radius: 9999px;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.embed-badge-sm.success {
+  background: rgb(236, 253, 245);
+  color: var(--color-evalUA21);
+}
+
+.embed-badge-sm.warning {
+  background: var(--embed-warning-light);
+  color: var(--embed-warning-strong);
+}
+
+.embed-badge-sm.danger {
+  background: rgb(254, 242, 242);
+  color: var(--color-evalUA8);
+}
+
+.embed-badge-sm.primary {
+  background: var(--embed-primary-light);
+  color: var(--color-evalUA1);
+}
+
+.embed-badge-sm.neutral {
+  background: rgba(57, 64, 73, 0.06);
+  color: rgba(57, 64, 73, 0.6);
+}
+
 .embed-input,
 .embed-textarea {
   width: 100%;
