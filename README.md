@@ -12,7 +12,7 @@ El repositorio está organizado en **cuatro directorios raíz** que representan 
 evalUA/
 ├── documentacion/   ← Hito base: especificaciones técnicas completas
 ├── mockup/          ← Maqueta interactiva: guía visual para el desarrollo
-├── v0/              ← Desarrollo V0 (alpha): micro-frontend funcional
+├── src/              ← Desarrollo src (alpha): micro-frontend funcional
 ├── demo/            ← Aplicación Host demostrativa (Yii2/PHP)
 └── README.md        ← Este archivo
 ```
@@ -48,7 +48,7 @@ Adicionalmente:
 
 ### 🎨 `mockup/` — Maqueta Interactiva
 
-Prototipo visual construido para **explorar y validar la interfaz antes de codificar el sistema real**. Funciona como referencia de diseño para el desarrollo en `v0/`.
+Prototipo visual construido para **explorar y validar la interfaz antes de codificar el sistema real**. Funciona como referencia de diseño para el desarrollo en `src/`.
 
 **Stack del mockup:**
 - Next.js 16 + TypeScript + Tailwind CSS v4 + shadcn/ui
@@ -79,7 +79,7 @@ Prototipo visual construido para **explorar y validar la interfaz antes de codif
 
 ---
 
-### 🚀 `v0/` — Desarrollo V0 (Alpha)
+### 🚀 `src/` — Desarrollo src (Alpha)
 
 Es el **código de producción aspiracional**, implementando la arquitectura DDD documental definida en la documentación. Se encuentra en estado **WIP (en desarrollo activo)**.
 
@@ -94,7 +94,7 @@ Es el **código de producción aspiracional**, implementando la arquitectura DDD
 **Arquitectura DDD:**
 
 ```
-v0/src/
+src/src/
 ├── app/
 │   ├── layout.tsx              ← Layout raíz
 │   ├── page.tsx                ← Página principal
@@ -163,7 +163,7 @@ Una aplicación Yii2 (PHP) que actúa como **plataforma Host simulada**, demostr
 - API endpoint `actionApiGenerateToken()` para generación dinámica de tokens vía AJAX
 
 **Docker Compose** integra ambos sistemas:
-- `evalua-app` (construido desde `v0/`)
+- `evalua-app` (construido desde `src/`)
 - `evalua-mongodb` + `evalua-redis`
 - `demo-app` (Yii2, construido desde `demo/`)
 - Red compartida `evalua-network`
@@ -180,7 +180,7 @@ Una aplicación Yii2 (PHP) que actúa como **plataforma Host simulada**, demostr
 └──────────────────┬──────────────────┬───────────────────┘
                    │                  │
          ┌─────────▼──────┐  ┌───────▼────────┐
-         │   mockup/      │  │     v0/         │
+         │   mockup/      │  │     src/         │
          │  (Prototipo    │  │  (Desarrollo    │
          │   visual)      │  │   real Alpha)   │
          └────────────────┘  └───────┬─────────┘
@@ -188,14 +188,14 @@ Una aplicación Yii2 (PHP) que actúa como **plataforma Host simulada**, demostr
                            ┌─────────▼─────────┐
                            │     demo/          │
                            │  (Host Yii2 que    │
-                           │   integra v0/      │
+                           │   integra src/      │
                            │   vía iframe)      │
                            └────────────────────┘
 ```
 
 1. **documentacion/** define el "qué" y el "cómo" — es la fuente de verdad.
 2. **mockup/** explora visualmente las soluciones antes de implementarlas — sirve como referencia de UX.
-3. **v0/** implementa la especificación real con el stack de producción — es el micro-servicio.
+3. **src/** implementa la especificación real con el stack de producción — es el micro-servicio.
 4. **demo/** prueba la integración end-to-end Host↔evalUA — valida el contrato JWT + iframe + postMessage.
 
 ---
@@ -220,9 +220,9 @@ Una aplicación Yii2 (PHP) que actúa como **plataforma Host simulada**, demostr
 
 ## Inicio rápido
 
-### Solo evalUA (v0)
+### Solo evalUA (src)
 ```bash
-cd v0
+cd src
 docker compose up --build
 # → http://localhost:3000
 ```
