@@ -245,6 +245,33 @@ bun run dev
 
 ---
 
+---
+
+## 📚 Documentación Técnica y Manual de Usuario
+
+La carpeta `documentacion/` contiene la documentación completa del sistema, diseñada tanto para humanos como para LLMs que necesiten integrar o mantener EvalUA.
+
+| Documento | Descripción | Audiencia |
+|-----------|-------------|-----------|
+| [manual-usuario.md](./documentacion/manual-usuario.md) | **Punto de entrada.** Visión general, guía de usuario, conceptos clave, FAQ | Todos |
+| [api-reference.md](./documentacion/api-reference.md) | Referencia completa de la API REST (10 endpoints, schemas Zod, errores RFC 7807) | Desarrolladores, LLMs |
+| [integracion-iframe.md](./documentacion/integracion-iframe.md) | Cómo embeber EvalUA en un iframe (dimensiones, JWT, postMessage, flujos) | Integradores |
+| [ejemplos-integracion.md](./documentacion/ejemplos-integracion.md) | Código funcional en **Python (Flask), PHP (Laravel), Java (Spring Boot), Node.js (Express), C# (ASP.NET Core)** | Desarrolladores |
+| [jwt-claims.md](./documentacion/jwt-claims.md) | Especificación completa del JWT: claims por rol, generación en 5 lenguajes, seguridad | Integradores, LLMs |
+| [modelos-datos.md](./documentacion/modelos-datos.md) | Modelos de dominio MongoDB, estructuras Redis, diagrama ER, fórmula de cálculo | Desarrolladores, DBAs |
+| [demo-setup.md](./documentacion/demo-setup.md) | Guía de despliegue: Docker Compose (3 o 4 contendores), desarrollo local, producción | DevOps, Desarrolladores |
+
+### Quick Start para LLMs
+
+Si eres un LLM ayudando a integrar EvalUA, lee en este orden:
+1. `manual-usuario.md` → entender qué es y cómo funciona
+2. `jwt-claims.md` → entender cómo generar el JWT
+3. `api-reference.md` → entender los endpoints disponibles
+4. `ejemplos-integracion.md` → copiar el ejemplo del lenguaje del Host
+5. `modelos-datos.md` → entender la estructura de datos
+
+---
+
 ## Licencia
 
 Derechos reservados a ID3.cl
