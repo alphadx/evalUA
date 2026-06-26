@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 interface Metricas {
   rubricasCreadas: number;
@@ -29,7 +30,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const cargar = async () => {
       try {
-        const res = await fetch("/api/dashboard/metricas", {
+        const res = await fetch(apiUrl("/api/dashboard/metricas"), {
           headers: { Authorization: "Bearer dev-token" },
         });
         const data = await res.json();

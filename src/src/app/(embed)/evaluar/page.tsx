@@ -16,6 +16,7 @@ import { Nota } from "@/domain/value-objects/nota";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 /** Rúbrica de demostración hardcodeada para modo demo */
 const DEMO_RUBRICA: RubricaData = {
@@ -268,7 +269,7 @@ export default function EvaluarPage() {
         }
 
         if (token) {
-          const launchRes = await fetch("/api/embed/launch", {
+          const launchRes = await fetch(apiUrl("/api/embed/launch"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token }),
@@ -285,7 +286,7 @@ export default function EvaluarPage() {
           } else if (data.evaluacionId) {
             // Fallback: si el launch no devolvió rubricaId, intentar
             // obtenerlo del borrador existente en el servidor
-            const evalRes = await fetch(`/api/evaluaciones/${data.evaluacionId}`, {
+            const evalRes = await fetch(apiUrl(`/api/evaluaciones/${data.evaluacionId}`), {
               headers: { Authorization: "Bearer dev-token" },
             });
             const evalData = await evalRes.json();
@@ -315,7 +316,7 @@ export default function EvaluarPage() {
     rubricaId: string,
     evaluacionId?: string
   ) => {
-    const rubricaRes = await fetch(`/api/rubricas/${rubricaId}`, {
+    const rubricaRes = await fetch(apiUrl(`/api/rubricas/${rubricaId}`), {
       headers: { Authorization: "Bearer dev-token" },
     });
     const rubricaData = await rubricaRes.json();
@@ -327,7 +328,7 @@ export default function EvaluarPage() {
     }
 
     if (evaluacionId) {
-      const evalRes = await fetch(`/api/evaluaciones/${evaluacionId}`, {
+      const evalRes = await fetch(apiUrl(`/api/evaluaciones/${evaluacionId}`), {
         headers: { Authorization: "Bearer dev-token" },
       });
       const evalData = await evalRes.json();
@@ -357,7 +358,7 @@ export default function EvaluarPage() {
 
     if (!evaluacionId) {
       const newEvalId = crypto.randomUUID();
-      const createRes = await fetch("/api/evaluaciones", {
+      const createRes = await fetch(apiUrl("/api/evaluaciones"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -386,7 +387,7 @@ export default function EvaluarPage() {
       if (draft.evaluacionId.startsWith("demo-eval-")) return;
       setSavingDraft(true);
       try {
-        await fetch(`/api/evaluaciones/${draft.evaluacionId}`, {
+        await fetch(apiUrl(`/api/evaluaciones/${draft.evaluacionId}`), {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -469,7 +470,7 @@ export default function EvaluarPage() {
       await autoSave(puntajes, "EN_REVISION");
 
       const res = await fetch(
-        `/api/evaluaciones/${draft.evaluacionId}/calcular`,
+        apiUrl(`/api/evaluaciones/${draft.evaluacionId}/calcular`),
         {
           method: "POST",
           headers: {

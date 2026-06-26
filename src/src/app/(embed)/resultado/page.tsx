@@ -7,6 +7,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 interface EvaluacionData {
   _id: string;
@@ -59,7 +60,7 @@ export default function ResultadoPage() {
 
         // Si no hay evaluacionId directo pero hay JWT, usar el launch endpoint
         if (!evaluacionId && token) {
-          const launchRes = await fetch("/api/embed/launch", {
+          const launchRes = await fetch(apiUrl("/api/embed/launch"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token }),
@@ -84,7 +85,7 @@ export default function ResultadoPage() {
           return;
         }
 
-        const evalRes = await fetch(`/api/evaluaciones/${evaluacionId}`, {
+        const evalRes = await fetch(apiUrl(`/api/evaluaciones/${evaluacionId}`), {
           headers: { Authorization: "Bearer dev-token" },
         });
         const evalData = await evalRes.json();
@@ -98,7 +99,7 @@ export default function ResultadoPage() {
 
         // Cargar rúbrica
         const rubricaRes = await fetch(
-          `/api/rubricas/${evalData.data.rubricaId}`,
+          apiUrl(`/api/rubricas/${evalData.data.rubricaId}`),
           { headers: { Authorization: "Bearer dev-token" } }
         );
         const rubricaData = await rubricaRes.json();

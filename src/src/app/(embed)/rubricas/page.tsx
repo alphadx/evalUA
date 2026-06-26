@@ -9,6 +9,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { v4 as uuid } from "uuid";
+import { apiUrl } from "@/lib/api-url";
 
 interface RubricaItem {
   _id: string;
@@ -99,7 +100,7 @@ export default function RubricasPage() {
   const cargarRubricas = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/rubricas", { headers });
+      const res = await fetch(apiUrl("/api/rubricas"), { headers });
       const data = await res.json();
       if (data.success) setRubricas(data.data);
     } catch {
@@ -206,7 +207,7 @@ export default function RubricasPage() {
     };
 
     try {
-      const url = vista === "editar" ? `/api/rubricas/${editandoId}` : "/api/rubricas";
+      const url = vista === "editar" ? apiUrl(`/api/rubricas/${editandoId}`) : apiUrl("/api/rubricas");
       const method = vista === "editar" ? "PUT" : "POST";
       const res = await fetch(url, { method, headers, body: JSON.stringify(body) });
       const data = await res.json();

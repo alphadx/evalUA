@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { apiUrl } from "@/lib/api-url";
 
 interface ConfigItem {
   _id: string;
@@ -24,7 +25,7 @@ export default function ConfigurarPage() {
   useEffect(() => {
     const cargar = async () => {
       try {
-        const res = await fetch("/api/configuracion", {
+        const res = await fetch(apiUrl("/api/configuracion"), {
           headers: { Authorization: "Bearer dev-token" },
         });
         const data = await res.json();
@@ -43,7 +44,7 @@ export default function ConfigurarPage() {
 
   const handleGuardar = async (clave: string) => {
     try {
-      const res = await fetch(`/api/configuracion/${clave}`, {
+      const res = await fetch(apiUrl(`/api/configuracion/${clave}`), {
         method: "PUT",
         headers: {
           Authorization: "Bearer dev-token",
