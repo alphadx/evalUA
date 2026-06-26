@@ -1,0 +1,11 @@
+node_modules
+.next
+.git
+*.tar
+all-in-one/*.tar
+src/node_modules
+src/.next
+mockup/node_modules
+mockup/.next
+demo
+documentacion

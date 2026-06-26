@@ -100,7 +100,7 @@ export default function LoginView() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="admin@usach.cl"
+                    placeholder="admin@evalua.cl"
                     className="pl-10"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}

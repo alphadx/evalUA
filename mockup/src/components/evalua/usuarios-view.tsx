@@ -44,25 +44,25 @@ interface Usuario {
 const initialUsuarios: Usuario[] = [
   {
     id: 'usr-001',
-    correo: 'admin@evalua.usach.cl',
+    correo: 'admin@evalua.evalua.cl',
     rol: 'ADMINISTRADOR',
     createdAt: '2026-01-15T08:00:00Z',
   },
   {
     id: 'usr-002',
-    correo: 'maria.gonzalez@usach.cl',
+    correo: 'maria.gonzalez@evalua.cl',
     rol: 'MANTENEDOR',
     createdAt: '2026-03-01T10:00:00Z',
   },
   {
     id: 'usr-003',
-    correo: 'carlos.perez@usach.cl',
+    correo: 'carlos.perez@evalua.cl',
     rol: 'MANTENEDOR',
     createdAt: '2026-03-15T14:00:00Z',
   },
   {
     id: 'usr-004',
-    correo: 'ana.soto@usach.cl',
+    correo: 'ana.soto@evalua.cl',
     rol: 'MANTENEDOR',
     createdAt: '2026-04-20T09:30:00Z',
   },
@@ -156,7 +156,7 @@ export default function UsuariosView() {
                   <Input
                     id="new-email"
                     type="email"
-                    placeholder="mantenedor@usach.cl"
+                    placeholder="mantenedor@evalua.cl"
                     className="pl-10"
                     value={newCorreo}
                     onChange={(e) => setNewCorreo(e.target.value)}

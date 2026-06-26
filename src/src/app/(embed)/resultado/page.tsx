@@ -5,6 +5,7 @@
  * Solo lectura con acordeón single-open
  */
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface EvaluacionData {
@@ -39,6 +40,7 @@ interface RubricaData {
 }
 
 export default function ResultadoPage() {
+  const router = useRouter();
   const [evaluacion, setEvaluacion] = useState<EvaluacionData | null>(null);
   const [rubrica, setRubrica] = useState<RubricaData | null>(null);
   const [criterioExpandido, setCriterioExpandido] = useState<string | null>(null);
@@ -71,7 +73,7 @@ export default function ResultadoPage() {
           evaluacionId = launchData.data.evaluacionId || null;
           // Si el launch indica modo evaluar (borrador), redirigir
           if (launchData.data.modo === "evaluar" && evaluacionId) {
-            window.location.href = `/evaluar?jwt=${encodeURIComponent(token)}`;
+            router.push(`/evaluar?jwt=${encodeURIComponent(token)}`);
             return;
           }
         }

@@ -14,6 +14,7 @@ import { EvaluacionStrategy } from "@/domain/strategies/evaluacion-strategy";
 import { CriterioId } from "@/domain/types";
 import { Nota } from "@/domain/value-objects/nota";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 /** Rúbrica de demostración hardcodeada para modo demo */
@@ -122,6 +123,7 @@ function notaCircleColor(nota: number): string {
 }
 
 export default function EvaluarPage() {
+  const router = useRouter();
   const [rubrica, setRubrica] = useState<RubricaData | null>(null);
   const [draft, setDraft] = useState<DraftData | null>(null);
   const [phase, setPhase] = useState<WizardPhase>("evaluando");
@@ -290,7 +292,7 @@ export default function EvaluarPage() {
             if (evalData.success && evalData.data.rubricaId) {
               await cargarRubricaYDraft(evalData.data.rubricaId, data.evaluacionId);
             } else if (data.modo === "ver_resultado") {
-              window.location.href = `/resultado?id=${data.evaluacionId}`;
+              router.push(`/resultado?id=${data.evaluacionId}`);
               return;
             } else {
               setError("No se pudo determinar la rúbrica para esta evaluación");
