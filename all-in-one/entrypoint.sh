@@ -54,6 +54,23 @@ for i in $(seq 1 30); do
   sleep 1
 done
 
+# --- Seed de configuración ---
+echo "[init] Sembrando configuración por defecto..."
+mongosh --quiet --eval '
+  use evalua;
+  db.configuraciones.updateOne(
+    { clave: "exigencia_default" },
+    {
+      $setOnInsert: {
+        clave: "exigencia_default",
+        valor: "0.5",
+        descripcion: "Porcentaje de exigencia por defecto para nuevas rúbricas (50%)"
+      }
+    },
+    { upsert: true }
+  );
+' 2>/dev/null || echo "[init] Aviso: No se pudo sembrar configuración (mongosh no disponible o DB no lista)"
+
 # --- Redis ---
 echo "[init] Iniciando Redis..."
 mkdir -p /data/redis

@@ -23,6 +23,7 @@ const DEMO_RUBRICA: RubricaData = {
   _id: "demo",
   titulo: "Rúbrica de Demostración",
   notaAprobacion: 4.0,
+  exigencia: 0.5,
   criterios: [
     {
       _id: "demo-c1",
@@ -85,6 +86,7 @@ interface RubricaData {
   _id: string;
   titulo: string;
   notaAprobacion: number;
+  exigencia?: number;
   criterios: Array<{
     _id: string;
     nombre: string;
@@ -213,7 +215,7 @@ export default function EvaluarPage() {
         );
       }
       const strategy = new EvaluacionStrategy();
-      const nota = strategy.calcular(puntajesDomain, criteriosDomain);
+      const nota = strategy.calcular(puntajesDomain, criteriosDomain, rubrica.exigencia);
       return nota.valor;
     } catch {
       return null;

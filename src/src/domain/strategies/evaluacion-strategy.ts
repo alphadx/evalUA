@@ -30,7 +30,7 @@ export class EvaluacionStrategy implements IEvaluacionStrategy {
   calcular(
     puntajes: Puntaje[],
     criterios: Criterio[],
-    exigencia = 0.6
+    exigencia = 0.5
   ): Nota {
     // 1. Regla de Exclusión Gatekeeper
     for (const criterio of criterios) {

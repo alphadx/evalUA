@@ -31,6 +31,7 @@ export const CriterioSchema = z.object({
 export const CrearRubricaSchema = z.object({
   titulo: z.string().min(1).max(300),
   notaAprobacion: z.number().min(1.0).max(7.0).default(4.0),
+  exigencia: z.number().min(0.1).max(1.0).default(0.5),
   metadata: z.record(z.string(), z.unknown()).optional(),
   criterios: z.array(CriterioSchema).min(1),
 });
@@ -38,6 +39,7 @@ export const CrearRubricaSchema = z.object({
 export const ActualizarRubricaSchema = z.object({
   titulo: z.string().min(1).max(300).optional(),
   notaAprobacion: z.number().min(1.0).max(7.0).optional(),
+  exigencia: z.number().min(0.1).max(1.0).optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
   criterios: z.array(CriterioSchema).min(1).optional(),
   esActiva: z.boolean().optional(),

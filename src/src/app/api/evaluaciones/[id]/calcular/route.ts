@@ -114,8 +114,9 @@ export async function POST(
       })
     );
 
+    const exigencia = (rubricaData.exigencia as number) ?? 0.5;
     const strategy = new EvaluacionStrategy();
-    const notaFinal = strategy.calcular(puntajes, criterios);
+    const notaFinal = strategy.calcular(puntajes, criterios, exigencia);
 
     // 7. Persistir en MongoDB
     await connectMongoDB();

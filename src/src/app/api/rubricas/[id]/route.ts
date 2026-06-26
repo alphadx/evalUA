@@ -123,6 +123,7 @@ export async function PUT(
         parentRubricaId: id,
         titulo: parsed.data.titulo || rubrica.titulo,
         notaAprobacion: parsed.data.notaAprobacion ?? rubrica.notaAprobacion,
+        exigencia: parsed.data.exigencia ?? rubrica.exigencia ?? 0.5,
         esActiva: true,
         metadata: parsed.data.metadata || rubrica.metadata,
         criterios: parsed.data.criterios.map((c, idx) => ({
@@ -153,6 +154,7 @@ export async function PUT(
     // Actualización directa (sin evaluaciones previas)
     if (parsed.data.titulo) rubrica.titulo = parsed.data.titulo;
     if (parsed.data.notaAprobacion !== undefined) rubrica.notaAprobacion = parsed.data.notaAprobacion;
+    if (parsed.data.exigencia !== undefined) rubrica.exigencia = parsed.data.exigencia;
     if (parsed.data.metadata !== undefined) rubrica.metadata = parsed.data.metadata || null;
     if (parsed.data.esActiva !== undefined) rubrica.esActiva = parsed.data.esActiva;
     if (parsed.data.criterios) {

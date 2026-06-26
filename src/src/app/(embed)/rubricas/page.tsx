@@ -15,6 +15,7 @@ interface RubricaItem {
   _id: string;
   titulo: string;
   notaAprobacion: number;
+  exigencia?: number;
   version: number;
   esActiva: boolean;
   criterios: Array<{
@@ -70,6 +71,7 @@ export default function RubricasPage() {
   const [error, setError] = useState<string | null>(null);
   const [titulo, setTitulo] = useState("");
   const [notaAprobacion, setNotaAprobacion] = useState(4.0);
+  const [exigencia, setExigencia] = useState(0.5);
   const [criterios, setCriterios] = useState<
     Array<{
       id: string;
@@ -113,6 +115,7 @@ export default function RubricasPage() {
     setVista("crear");
     setTitulo("");
     setNotaAprobacion(4.0);
+    setExigencia(0.5);
     setCriterios([
       {
         id: uuid(),
@@ -134,6 +137,7 @@ export default function RubricasPage() {
     setEditandoId(rubrica._id);
     setTitulo(rubrica.titulo);
     setNotaAprobacion(rubrica.notaAprobacion ?? 4.0);
+    setExigencia(rubrica.exigencia ?? 0.5);
     setCriterios(
       rubrica.criterios.map((c) => ({
         id: c._id,
@@ -194,6 +198,7 @@ export default function RubricasPage() {
     const body = {
       titulo,
       notaAprobacion,
+      exigencia,
       criterios: criterios.map((c) => ({
         id: c.id,
         nombre: c.nombre,
@@ -350,6 +355,21 @@ export default function RubricasPage() {
                     max="7.0"
                     value={notaAprobacion}
                     onChange={(e) => setNotaAprobacion(parseFloat(e.target.value) || 4.0)}
+                    style={{ width: "5rem" }}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-semibold" style={{ color: "rgba(57,64,73,0.6)" }}>
+                    Exigencia (%)
+                  </label>
+                  <input
+                    className="embed-input-compact"
+                    type="number"
+                    step="1"
+                    min="10"
+                    max="100"
+                    value={Math.round(exigencia * 100)}
+                    onChange={(e) => setExigencia((parseInt(e.target.value) || 50) / 100)}
                     style={{ width: "5rem" }}
                   />
                 </div>
