@@ -48,6 +48,7 @@ const RubricaSchema = new Schema(
     notaAprobacion: { type: Number, default: 4.0, min: 1.0, max: 7.0 },
     exigencia: { type: Number, default: 0.5, min: 0.1, max: 1.0 },
     esActiva: { type: Boolean, default: true, index: true },
+    expuesta: { type: Boolean, default: false },
     metadata: { type: Schema.Types.Mixed, default: null },
     criterios: [CriterioSchema],
   },
@@ -67,6 +68,7 @@ export interface IRubricaDocument {
   notaAprobacion: number;
   exigencia: number;
   esActiva: boolean;
+  expuesta: boolean;
   metadata: Record<string, unknown> | null;
   criterios: Array<{
     _id: string;

@@ -95,6 +95,10 @@ $this->beginPage();
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>
                     <span class="hidden lg:inline">Resultados</span>
                 </a>
+                <a href="<?= Url::to(['site/ver-rubrica']) ?>" class="nav-link <?= $currentPage === 'ver-rubrica' ? 'nav-link-active' : '' ?>">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <span class="hidden lg:inline">Ver Rúbrica</span>
+                </a>
             </nav>
             <div class="flex items-center gap-3">
                 <span class="iframe-driven-badge hidden sm:flex">
@@ -126,6 +130,7 @@ $this->beginPage();
                         'rubricas' => 'CRUD de rúbricas con versionamiento',
                         'dashboard' => 'Métricas e historial de evaluaciones',
                         'configurar' => 'Configuración global del sistema',
+                        'ver-rubrica' => 'Matriz de visualización de rúbrica',
                     ];
                     echo $descriptions[$currentPage] ?? 'Módulo evalUA';
                 ?></span>
@@ -166,6 +171,7 @@ $this->beginPage();
         <a href="<?= Url::to(['site/configurar']) ?>" class="mobile-nav-item <?= $currentPage === 'configurar' ? 'active' : '' ?>">Configurar</a>
         <a href="<?= Url::to(['site/evaluar']) ?>" class="mobile-nav-item <?= $currentPage === 'evaluar' ? 'active' : '' ?>">Wizard</a>
         <a href="<?= Url::to(['site/resultado']) ?>" class="mobile-nav-item <?= $currentPage === 'resultado' ? 'active' : '' ?>">Resultados</a>
+        <a href="<?= Url::to(['site/ver-rubrica']) ?>" class="mobile-nav-item <?= $currentPage === 'ver-rubrica' ? 'active' : '' ?>">Ver Rúbrica</a>
     </nav>
 </div>
 
@@ -200,7 +206,7 @@ var ROLE_CONFIG = {
         color: '#8b5cf6',
         defaultPage: 'resultado',
         badgeClass: 'role-badge-header-alumno',
-        pages: ['index', 'resultado']
+        pages: ['index', 'resultado', 'ver-rubrica']
     },
     'MANTENEDOR': {
         label: 'Mantenedor',
@@ -217,7 +223,8 @@ var PAGE_URLS = {
     'configurar': '<?= Url::to(["site/configurar"]) ?>',
     'rubricas': '<?= Url::to(["site/rubricas"]) ?>',
     'evaluar': '<?= Url::to(["site/evaluar"]) ?>',
-    'resultado': '<?= Url::to(["site/resultado"]) ?>'
+    'resultado': '<?= Url::to(["site/resultado"]) ?>',
+    'ver-rubrica': '<?= Url::to(["site/ver-rubrica"]) ?>'
 };
 
 var currentRole = sessionStorage.getItem('evalua_role') || 'ADMINISTRADOR';
@@ -335,6 +342,7 @@ function updateNavForRole(role, config) {
         else if (href.indexOf('/configurar') !== -1) pageName = 'configurar';
         else if (href.indexOf('/evaluar') !== -1) pageName = 'evaluar';
         else if (href.indexOf('/resultado') !== -1) pageName = 'resultado';
+        else if (href.indexOf('/ver-rubrica') !== -1) pageName = 'ver-rubrica';
         
         if (config.pages.indexOf(pageName) !== -1) {
             // Page is accessible for this role
@@ -358,6 +366,7 @@ function updateNavForRole(role, config) {
         else if (href.indexOf('/configurar') !== -1) pageName = 'configurar';
         else if (href.indexOf('/evaluar') !== -1) pageName = 'evaluar';
         else if (href.indexOf('/resultado') !== -1) pageName = 'resultado';
+        else if (href.indexOf('/ver-rubrica') !== -1) pageName = 'ver-rubrica';
         
         if (config.pages.indexOf(pageName) !== -1) {
             item.style.opacity = '1';

@@ -156,6 +156,26 @@ class SiteController extends Controller
     }
 
     /**
+     * Ver Rúbrica (matriz) — ALUMNO role (read-only)
+     * Shows rubrica in matrix format; if no rubrica_id, shows demo
+     */
+    public function actionVerRubrica()
+    {
+        $rubricaId = Yii::$app->request->get('rubrica_id', '');
+
+        $token = $this->generateJwt([
+            'rol' => 'ALUMNO',
+            'usuario_id' => Yii::$app->params['demo.usuario_alumno'],
+        ]);
+
+        return $this->render('ver-rubrica', [
+            'token' => $token,
+            'rubricaId' => $rubricaId,
+            'evaluaUrl' => Yii::$app->params['evalua.browser_url'],
+        ]);
+    }
+
+    /**
      * Error page
      */
     public function actionError()

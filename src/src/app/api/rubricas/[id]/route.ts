@@ -42,9 +42,15 @@ export async function GET(
       return createErrorResponse(403, "Prohibido", "Rol no autorizado");
     }
 
+    const esRolPublico = claims.rol === "PROFESOR" || claims.rol === "ALUMNO";
+
     // Cache-Aside: Intentar leer de Redis primero
     const cached = await getCachedRubrica(id);
     if (cached) {
+      // Para roles públicos, verificar que esté activa y expuesta
+      if (esRolPublico && (!cached.esActiva || !cached.expuesta)) {
+        return createErrorResponse(404, "No encontrada", "Rúbrica no disponible");
+      }
       return Response.json({ success: true, data: cached });
     }
 
@@ -52,6 +58,11 @@ export async function GET(
     const rubrica = await RubricaModel.findById(id).lean();
     if (!rubrica) {
       return createErrorResponse(404, "No encontrada", "Rúbrica no existe");
+    }
+
+    // Para roles públicos, verificar que esté activa y expuesta
+    if (esRolPublico && (!rubrica.esActiva || !rubrica.expuesta)) {
+      return createErrorResponse(404, "No encontrada", "Rúbrica no disponible");
     }
 
     // Repoblar caché en segundo plano
@@ -157,6 +168,7 @@ export async function PUT(
     if (parsed.data.exigencia !== undefined) rubrica.exigencia = parsed.data.exigencia;
     if (parsed.data.metadata !== undefined) rubrica.metadata = parsed.data.metadata || null;
     if (parsed.data.esActiva !== undefined) rubrica.esActiva = parsed.data.esActiva;
+    if (parsed.data.expuesta !== undefined) rubrica.expuesta = parsed.data.expuesta;
     if (parsed.data.criterios) {
       const crypto = await import("crypto");
       rubrica.criterios = parsed.data.criterios.map((c, idx) => ({

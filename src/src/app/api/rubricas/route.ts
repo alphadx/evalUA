@@ -109,6 +109,7 @@ export async function POST(request: NextRequest) {
       notaAprobacion: notaAprobacion ?? 4.0,
       exigencia: exigencia ?? 0.5,
       esActiva: true,
+      expuesta: false,
       metadata: metadata || null,
       criterios: criterios.map((c, idx) => ({
         _id: c.id || crypto.randomUUID(),

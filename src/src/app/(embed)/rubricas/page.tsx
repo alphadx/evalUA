@@ -18,6 +18,7 @@ interface RubricaItem {
   exigencia?: number;
   version: number;
   esActiva: boolean;
+  expuesta: boolean;
   criterios: Array<{
     _id: string;
     nombre: string;
@@ -242,6 +243,26 @@ export default function RubricasPage() {
     navigator.clipboard.writeText(id);
     setCopiadoId(id);
     setTimeout(() => setCopiadoId(null), 2000);
+  };
+
+  const toggleRubricaField = async (id: string, field: "esActiva" | "expuesta", value: boolean) => {
+    try {
+      const res = await fetch(apiUrl(`/api/rubricas/${id}`), {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ [field]: value }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setRubricas((prev) =>
+          prev.map((r) => (r._id === id ? { ...r, [field]: value } : r))
+        );
+      } else {
+        setError(data.error?.detail || "Error actualizando rúbrica");
+      }
+    } catch {
+      setError("Error de red");
+    }
   };
 
   const actualizarDescriptor = (
@@ -849,9 +870,41 @@ export default function RubricasPage() {
                     </div>
                   </div>
 
-                  {/* Expanded: criteria preview */}
+                  {/* Expanded: toggles + criteria preview */}
                   {expandido && (
-                    <div className="mt-2 space-y-1 border-t pt-2" style={{ borderColor: "rgba(229,231,235,0.5)" }}>
+                    <div className="mt-2 space-y-2 border-t pt-2" style={{ borderColor: "rgba(229,231,235,0.5)" }}>
+                      {/* Toggles: Activa + Expuesta */}
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5">
+                          <div
+                            className={`embed-switch ${r.esActiva ? "active" : ""}`}
+                            onClick={() => toggleRubricaField(r._id, "esActiva", !r.esActiva)}
+                            role="switch"
+                            aria-checked={r.esActiva}
+                            tabIndex={0}
+                          />
+                          <span className="text-[10px] font-semibold" style={{ color: "rgba(57,64,73,0.65)" }}>
+                            {r.esActiva ? "Activa" : "Inactiva"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div
+                            className={`embed-switch ${r.expuesta ? "active" : ""}`}
+                            onClick={() => toggleRubricaField(r._id, "expuesta", !r.expuesta)}
+                            role="switch"
+                            aria-checked={r.expuesta}
+                            tabIndex={0}
+                          />
+                          <span className="text-[10px] font-semibold" style={{ color: "rgba(57,64,73,0.65)" }}>
+                            {r.expuesta ? "Expuesta" : "No expuesta"}
+                          </span>
+                          {r.expuesta && (
+                            <span className="embed-badge-sm success">Visible</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Criteria preview */}
                       {r.criterios.map((c) => (
                         <div
                           key={c._id}

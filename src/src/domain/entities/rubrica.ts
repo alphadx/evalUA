@@ -18,6 +18,7 @@ export class Rubrica {
     public notaAprobacion: number,
     public exigencia: number,
     public esActiva: boolean,
+    public expuesta: boolean,
     public metadata: Record<string, unknown> | null,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
@@ -39,6 +40,7 @@ export class Rubrica {
       params.notaAprobacion ?? 4.0,
       params.exigencia ?? 0.5,
       true,
+      false, // nueva rúbrica no expuesta por defecto
       params.metadata || null,
       new Date(),
       new Date()
@@ -80,6 +82,7 @@ export class Rubrica {
       this.notaAprobacion,
       this.exigencia,
       true,
+      false, // nueva versión no expuesta por defecto
       this.metadata ? { ...this.metadata } : null,
       new Date(),
       new Date()

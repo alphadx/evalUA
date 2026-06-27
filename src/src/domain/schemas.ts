@@ -43,6 +43,7 @@ export const ActualizarRubricaSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
   criterios: z.array(CriterioSchema).min(1).optional(),
   esActiva: z.boolean().optional(),
+  expuesta: z.boolean().optional(),
 });
 
 // --- Evaluaciones ---
