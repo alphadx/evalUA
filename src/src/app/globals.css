@@ -295,7 +295,7 @@
   position: relative;
   background: var(--embed-surface);
   border: 1px solid rgba(229, 231, 235, 0.5);
-  border-radius: 1rem;
+  border-radius: 0.5rem;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
   overflow: hidden;
 }
