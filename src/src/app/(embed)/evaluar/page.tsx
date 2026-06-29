@@ -867,7 +867,7 @@ export default function EvaluarPage() {
                   className="text-[10px]"
                   style={{ color: "rgba(57,64,73,0.5)" }}
                 >
-                  Nota Final:
+                  Exigencia: {Math.round((rubrica?.exigencia ?? 0.5) * 100)}% · Nota Final:
                 </span>
                 <span
                   className="text-sm font-bold"

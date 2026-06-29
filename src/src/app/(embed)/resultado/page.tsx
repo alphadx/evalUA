@@ -25,6 +25,7 @@ interface RubricaData {
   _id: string;
   titulo: string;
   notaAprobacion: number;
+  exigencia?: number;
   criterios: Array<{
     _id: string;
     nombre: string;
@@ -158,7 +159,7 @@ export default function ResultadoPage() {
               <p className="text-xs font-semibold" style={{ color: "var(--color-evalUA2)" }}>
                 {rubrica.titulo}
               </p>
-              <p className="text-sm font-medium mt-1">Nota final</p>
+              <p className="text-sm font-medium mt-1">Exigencia: {Math.round((rubrica.exigencia ?? 0.5) * 100)}% · Nota final</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs" style={{ color: "rgba(57,64,73,0.6)" }}>
