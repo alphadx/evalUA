@@ -68,10 +68,11 @@ function descriptorBadgeClass(nota: number): string {
 
 function RubricasPageContent() {
   const searchParams = useSearchParams();
-  const modeParam = searchParams.get("mode"); // "crear" | null
+  const modeParam = searchParams.get("mode"); // "crear" | "editar" | null
+  const idParam = searchParams.get("id"); // rubricaId para modo editar
 
   const [rubricas, setRubricas] = useState<RubricaItem[]>([]);
-  const [vista, setVista] = useState<Vista>(modeParam === "crear" ? "crear" : "lista");
+  const [vista, setVista] = useState<Vista>(modeParam === "crear" ? "crear" : (modeParam === "editar" ? "editar" : "lista"));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rubricaCreadaId, setRubricaCreadaId] = useState<string | null>(null);
@@ -93,6 +94,7 @@ function RubricasPageContent() {
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [copiadoId, setCopiadoId] = useState<string | null>(null);
   const [listaExpandida, setListaExpandida] = useState<string | null>(null);
+  const [modoInicial, setModoInicial] = useState<"crear" | "editar" | null>(null);
 
   // ── Accordion state ──
   const [criterioActivoIdx, setCriterioActivoIdx] = useState<number | null>(0);
@@ -101,15 +103,20 @@ function RubricasPageContent() {
 
   const headers = { Authorization: "Bearer dev-token", "Content-Type": "application/json" };
 
-  // Si mode=crear, inicializar el formulario directamente sin cargar la lista
+  // Manejar los modos iniciales via URL
   useEffect(() => {
     if (modeParam === "crear") {
+      setModoInicial("crear");
       handleCrearInit();
+    } else if (modeParam === "editar" && idParam) {
+      setModoInicial("editar");
+      handleEditarInit(idParam);
     } else {
+      setModoInicial(null);
       cargarRubricas();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [modeParam, idParam]);
 
   const cargarRubricas = async () => {
     setLoading(true);
@@ -125,6 +132,7 @@ function RubricasPageContent() {
 
   const handleCrearInit = () => {
     setVista("crear");
+    setEditandoId(null);
     setTitulo("");
     setNotaAprobacion(4.0);
     setExigencia(0.5);
@@ -144,37 +152,56 @@ function RubricasPageContent() {
     setDatosGeneralesAbierto(true);
   };
 
+  const handleEditarInit = async (rubricaId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(apiUrl(`/api/rubricas/${rubricaId}`), { headers });
+      const data = await res.json();
+      if (data.success && data.data) {
+        const rubrica = data.data as RubricaItem;
+        setVista("editar");
+        setEditandoId(rubrica._id);
+        setTitulo(rubrica.titulo);
+        setNotaAprobacion(rubrica.notaAprobacion ?? 4.0);
+        setExigencia(rubrica.exigencia ?? 0.5);
+        setCriterios(
+          rubrica.criterios.map((c) => ({
+            id: c._id,
+            nombre: c.nombre,
+            ponderacion: c.ponderacion,
+            tipo: c.tipo,
+            esExcluyente: c.esExcluyente,
+            notaCorte: c.notaCorte ?? 4.0,
+            descripcion: c.descripcion || "",
+            descriptores: c.descriptores.length >= 7 ? c.descriptores : crearDescriptoresDefault(),
+          }))
+        );
+        setCriterioActivoIdx(0);
+        setDatosGeneralesAbierto(false);
+      } else {
+        setError(data.error?.detail || "Error cargando rúbrica");
+      }
+    } catch {
+      setError("Error de red al cargar rúbrica");
+    }
+    setLoading(false);
+  };
+
   const handleCrear = () => {
+    setModoInicial(null);
     handleCrearInit();
   };
 
   const handleEditar = (rubrica: RubricaItem) => {
-    setVista("editar");
-    setEditandoId(rubrica._id);
-    setTitulo(rubrica.titulo);
-    setNotaAprobacion(rubrica.notaAprobacion ?? 4.0);
-    setExigencia(rubrica.exigencia ?? 0.5);
-    setCriterios(
-      rubrica.criterios.map((c) => ({
-        id: c._id,
-        nombre: c.nombre,
-        ponderacion: c.ponderacion,
-        tipo: c.tipo,
-        esExcluyente: c.esExcluyente,
-        notaCorte: c.notaCorte ?? 4.0,
-        descripcion: c.descripcion || "",
-        descriptores: c.descriptores.length >= 7 ? c.descriptores : crearDescriptoresDefault(),
-      }))
-    );
-    setCriterioActivoIdx(0);
-    setDatosGeneralesAbierto(false);
+    setModoInicial(null);
+    handleEditarInit(rubrica._id);
   };
 
   const toggleCriterioActivo = (idx: number) => {
     const nuevo = criterioActivoIdx === idx ? null : idx;
     setCriterioActivoIdx(nuevo);
     if (nuevo !== null) {
-      // Scroll-into-view con delay para que el DOM se actualice
       requestAnimationFrame(() => {
         const el = criterioRefs.current.get(nuevo);
         if (el) {
@@ -234,17 +261,22 @@ function RubricasPageContent() {
       const data = await res.json();
       if (data.success) {
         if (data.data?._id) {
+          const messageType = vista === "crear" ? "evalua.rubrica.created" : "evalua.rubrica.updated";
+          const payload: { rubricaId: string; version?: number } = { rubricaId: data.data._id };
+          if (data.data.version !== undefined) {
+            payload.version = data.data.version;
+          }
           window.parent.postMessage(
             {
               source: "evalua",
               version: "3.0",
-              type: "evalua.rubrica.created",
-              payload: { rubricaId: data.data._id },
+              type: messageType,
+              payload,
             },
             "*"
           );
         }
-        if (modeParam === "crear") {
+        if (modoInicial) {
           setRubricaCreadaId(data.data?._id || null);
           setVista("exito");
         } else {
@@ -469,7 +501,6 @@ function RubricasPageContent() {
                       descriptores: crearDescriptoresDefault(),
                     },
                   ]);
-                  // Expandir el nuevo criterio y scrollear
                   setCriterioActivoIdx(newIdx);
                   requestAnimationFrame(() => {
                     setTimeout(() => {
@@ -498,9 +529,7 @@ function RubricasPageContent() {
                   }}
                   style={isActive ? { borderColor: "var(--color-evalUA1)", boxShadow: "0 0 0 1px rgba(234,118,0,0.15)" } : undefined}
                 >
-                  {/* ── Header colapsado: resumen o formulario ── */}
                   {!isActive ? (
-                    /* Estado colapsado: resumen compacto */
                     <div
                       className="flex items-center justify-between gap-2 cursor-pointer py-0.5"
                       onClick={() => toggleCriterioActivo(idx)}
@@ -544,9 +573,7 @@ function RubricasPageContent() {
                       </div>
                     </div>
                   ) : (
-                    /* Estado expandido: formulario completo */
                     <>
-                      {/* Fila superior: indicador de progreso + cerrar */}
                       <div className="flex items-center justify-between gap-2">
                         <span className="embed-badge-sm primary">
                           Criterio {idx + 1} de {criterios.length}
@@ -561,7 +588,6 @@ function RubricasPageContent() {
                         </button>
                       </div>
 
-                      {/* Fila 1: Grid compacto nombre | ponderación | tipo | acciones */}
                       <div className="grid gap-2 items-start" style={{ gridTemplateColumns: "1fr auto auto auto" }}>
                         <div className="space-y-0.5">
                           <label className="text-[10px] font-semibold" style={{ color: "rgba(57,64,73,0.55)" }}>
@@ -633,7 +659,6 @@ function RubricasPageContent() {
                         </div>
                       </div>
 
-                      {/* Fila 2: Excluyente switch + badges */}
                       <div className="flex items-center gap-2 flex-wrap">
                         <div
                           className={`embed-switch ${crit.esExcluyente ? "active" : ""}`}
@@ -689,7 +714,6 @@ function RubricasPageContent() {
                         </div>
                       </div>
 
-                      {/* Descriptores (siempre visibles en modo activo) */}
                       <div>
                         <div
                           className="text-[10px] font-semibold py-1 px-1"
@@ -759,7 +783,6 @@ function RubricasPageContent() {
                         </div>
                       </div>
 
-                      {/* Botón para avanzar al siguiente criterio */}
                       {idx < criterios.length - 1 && (
                         <button
                           className="w-full text-[10px] py-1.5 rounded-md font-semibold hover:bg-gray-50 transition-colors"
@@ -777,7 +800,6 @@ function RubricasPageContent() {
             })}
           </div>
 
-          {/* Error */}
           {error && (
             <div
               className="text-xs font-medium px-2 py-1.5 rounded-md"
@@ -788,7 +810,6 @@ function RubricasPageContent() {
           )}
         </div>
 
-        {/* Footer sticky */}
         <div className="embed-panel-footer" style={{ position: "sticky", bottom: 0, zIndex: 10 }}>
           <button
             className="embed-button-outline text-xs px-3 py-1.5 rounded-md font-semibold"
@@ -812,6 +833,9 @@ function RubricasPageContent() {
 
   // ─── Vista Éxito ───
   if (vista === "exito") {
+    const esCreacion = modoInicial === "crear";
+    const messageType = esCreacion ? "evalua.rubrica.created" : "evalua.rubrica.updated";
+    
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4">
         <div className="text-center space-y-4 px-8">
@@ -830,7 +854,7 @@ function RubricasPageContent() {
             className="text-xl font-bold"
             style={{ color: "var(--color-evalUA2)" }}
           >
-            Rúbrica Creada
+            {esCreacion ? "Rúbrica Creada" : "Rúbrica Actualizada"}
           </h2>
           {rubricaCreadaId && (
             <div className="flex items-center justify-center gap-1.5">
@@ -847,7 +871,9 @@ function RubricasPageContent() {
             className="text-xs"
             style={{ color: "rgba(57,64,73,0.5)" }}
           >
-            La rúbrica ha sido registrada exitosamente.
+            {esCreacion 
+              ? "La rúbrica ha sido registrada exitosamente."
+              : "La rúbrica ha sido actualizada exitosamente."}
             <br />
             El sistema host ha sido notificado.
           </p>
@@ -856,7 +882,7 @@ function RubricasPageContent() {
               className="text-[9px] px-3 py-1 rounded"
               style={{ color: "rgba(57,64,73,0.4)", backgroundColor: "rgba(57,64,73,0.05)" }}
             >
-              postMessage(&#123; type: "evalua.rubrica.created" &#125;)
+              postMessage(&#123; type: "{messageType}" &#125;)
             </code>
           </div>
         </div>
@@ -892,7 +918,6 @@ function RubricasPageContent() {
               <div key={r._id} className="embed-card-compact">
                 <div className={`embed-card-accent ${r.esActiva ? "success" : "muted"}`} />
                 <div className="px-3 py-2">
-                  {/* Row 1: título + badges + expand toggle */}
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 flex-1 min-w-0">
                       <span className="text-xs font-semibold truncate" style={{ color: "var(--color-evalUA2)" }}>
@@ -913,7 +938,6 @@ function RubricasPageContent() {
                     </button>
                   </div>
 
-                  {/* Row 2: ID + acciones */}
                   <div className="flex items-center gap-1.5 mt-1">
                     <div
                       className="flex items-center gap-1 rounded border border-dashed px-1.5 py-0.5"
@@ -944,10 +968,8 @@ function RubricasPageContent() {
                     </div>
                   </div>
 
-                  {/* Expanded: toggles + criteria preview */}
                   {expandido && (
                     <div className="mt-2 space-y-2 border-t pt-2" style={{ borderColor: "rgba(229,231,235,0.5)" }}>
-                      {/* Toggles: Activa + Expuesta */}
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5">
                           <div
@@ -978,7 +1000,6 @@ function RubricasPageContent() {
                         </div>
                       </div>
 
-                      {/* Criteria preview */}
                       {r.criterios.map((c) => (
                         <div
                           key={c._id}

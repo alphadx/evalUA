@@ -79,17 +79,31 @@ function toggleIframeSrc() {
     el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
-// Listen for rubrica created event from iframe
+// Listen for rubrica created/updated event from iframe
 window.addEventListener('message', function(event) {
     try {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-        if (data.source === 'evalua' && data.type === 'evalua.rubrica.created' && data.payload) {
+        
+        // Handle both created and updated events
+        if (data.source === 'evalua' && data.payload && data.payload.rubricaId) {
             const hint = document.getElementById('captureHint');
             const idEl = document.getElementById('capturedRubricaId');
             const link = document.getElementById('goToEvaluar');
             
-            if (hint && idEl && data.payload.rubricaId) {
+            if (hint && idEl) {
                 idEl.textContent = data.payload.rubricaId;
+                
+                // Add version info if available (updated event)
+                let messageText = data.payload.rubricaId;
+                if (data.payload.version) {
+                    messageText += ' (v' + data.payload.version + ')';
+                }
+                
+                // Show hint with appropriate message
+                hint.querySelector('span').textContent = data.type === 'evalua.rubrica.created' 
+                    ? 'Nueva rúbrica creada: ' + messageText
+                    : 'Rúbrica actualizada: ' + messageText;
+                
                 link.href = '<?= \yii\helpers\Url::to(['site/evaluar']) ?>?rubrica_id=' + encodeURIComponent(data.payload.rubricaId);
                 hint.style.display = 'flex';
             }

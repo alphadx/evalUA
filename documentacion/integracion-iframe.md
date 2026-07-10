@@ -72,6 +72,7 @@ Cada vista de EvalUA tiene una ruta específica que se accede mediante el iframe
 | `/evaluar?jwt=TOKEN` | PROFESOR | Wizard de evaluación paso a paso |
 | `/rubricas?jwt=TOKEN` | MANTENEDOR, ADMINISTRADOR | Gestión de rúbricas (vista índice) |
 | `/rubricas?mode=crear&jwt=TOKEN` | MANTENEDOR, ADMINISTRADOR | Crear nueva rúbrica directamente (salta el índice) |
+| `/rubricas?mode=editar&id=ID&jwt=TOKEN` | MANTENEDOR, ADMINISTRADOR | Editar rúbrica existente directamente |
 | `/ver-rubrica?jwt=TOKEN` | MANTENEDOR, ADMINISTRADOR | Ver rúbrica en formato matriz |
 | `/dashboard?jwt=TOKEN` | ADMINISTRADOR, MANTENEDOR | Métricas y estadísticas |
 | `/resultado?jwt=TOKEN` | ALUMNO | Ver resultado de evaluación |
@@ -224,6 +225,7 @@ window.addEventListener('message', (event) => {
 |------|---------|-----------------|
 | `evalua.evaluation.completed` | `{ evaluacionId, status }` | Evaluación finalizada y calculada |
 | `evalua.rubrica.created` | `{ rubricaId }` | Nueva rúbrica creada |
+| `evalua.rubrica.updated` | `{ rubricaId, version? }` | Rúbrica existente actualizada |
 
 **Formato del mensaje:**
 ```javascript
@@ -284,6 +286,94 @@ window.addEventListener('message', (event) => {
     // El Host controla qué hacer: cerrar modal, redirigir, etc.
     cerrarModalRubrica();
     // o: refrescarListaRubricas();
+  }
+});
+```
+
+### Flujo 5: Editar rúbrica directo (sin índice)
+
+El Host puede abrir el iframe directamente en modo edición, saltando la vista de lista. Al terminar, EvalUA muestra una pantalla de éxito y envía un `postMessage` con el ID de la rúbrica actualizada. **Si la rúbrica tiene evaluaciones asociadas, se crea una nueva versión automáticamente.**
+
+**URL:**
+```
+http://evalua:3000/rubricas?mode=editar&id=RUBRICA_ID&jwt=<TOKEN>
+```
+
+`````
+┌─────────────────────────────────────────────────────────────────┐
+│ HOST (LMS)                                                      │
+│                                                                 │
+│ 1. Mantenedor/Admin hace clic en "Editar Rúbrica"             │
+│ 2. El Host genera JWT:                                          │
+│    { rol: "MANTENEDOR", usuario_id: "mant.789",                │
+│      rubricas_permitidas: ["*"] }                              │
+│ 3. El Host construye URL con `mode=editar&id=ID`:              │
+│    http://evalua:3000/rubricas?mode=editar&id=RUBRICA_ID      │
+│    &jwt=<TOKEN>                                                 │
+│ 4. El Host embebe iframe (modal o página dedicada)             │
+└─────────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ EVALUA (iframe)                                                 │
+│                                                                 │
+│ 5. Detecta mode=editar&id=ID → GET /api/rubricas/ID            │
+│ 6. Valida JWT + permisos + acceso a la rúbrica                 │
+│ 7. Abre formulario pre-cargado con datos actuales              │
+│ 8. Usuario modifica rúbrica y hace clic en "Guardar"           │
+│ 9. PUT /api/rubricas/ID con los datos actualizados             │
+│10. Si hay evaluaciones → crea nueva versión (nuevo _id)        │
+│11. Muestra pantalla de éxito con ID de la rúbrica actualizada  │
+│12. Envía postMessage:                                          │
+│    { type: "evalua.rubrica.updated",                           │
+│      payload: { rubricaId: "...", version: N } }               │
+│13. NO vuelve al índice — el Host controla el cierre          │
+└─────────────────────────────────────────────────────────────────┘
+````
+
+**Importante sobre versionamiento:**
+- Si la rúbrica NO tiene evaluaciones asociadas → se actualiza en lugar (mismo `_id`)
+- Si la rúbrica TIENE evaluaciones asociadas → se crea nueva versión (nuevo `_id`)
+- El `postMessage` siempre incluye el `_id` que quedó en uso después de la edición
+- El `version` en el payload indica el número de versión (si aplica)
+
+**Ejemplo de listener en el Host para edición:**
+```javascript
+window.addEventListener('message', (event) => {
+  if (event.origin !== 'http://localhost:3000') return;
+
+  if (event.data.type === 'evalua.rubrica.updated') {
+    const { rubricaId, version } = event.data.payload;
+    console.log('Rúbrica actualizada:', rubricaId, 'v' + (version || '?'));
+
+    // Si se creó nueva versión, actualizar la referencia en el Host
+    actualizarReferenciaRubrica(rubricaId);
+    
+    // El Host controla qué hacer: cerrar modal, redirigir, etc.
+    cerrarModalRubrica();
+    // o: refrescarListaRubricas();
+  }
+});
+```
+
+**Listener combinado (crear + editar):**
+```javascript
+window.addEventListener('message', (event) => {
+  if (event.origin !== 'http://localhost:3000') return;
+
+  const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+  
+  if (data.source === 'evalua') {
+    switch (data.type) {
+      case 'evalua.rubrica.created':
+        console.log('Nueva rúbrica:', data.payload.rubricaId);
+        break;
+      
+      case 'evalua.rubrica.updated':
+        console.log('Rúbrica actualizada:', data.payload.rubricaId, 
+                    'v' + (data.payload.version || '?'));
+        break;
+    }
   }
 });
 ```

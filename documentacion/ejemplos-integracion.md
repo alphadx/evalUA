@@ -181,6 +181,27 @@ def crear_rubrica():
     )
 
 
+@app.route("/editar-rubrica/<rubrica_id>")
+def editar_rubrica(rubrica_id):
+    """Editar rúbrica directo (sin índice) — rol MANTENEDOR."""
+    token = generate_jwt({
+        "rol": "MANTENEDOR",
+        "usuario_id": "mantenedor.demo",
+        "rubricas_permitidas": ["*"],
+    })
+
+    # mode=editar&id=ID abre el formulario pre-cargado
+    iframe_url = f"{EVALUA_URL}/rubricas?mode=editar&id={rubrica_id}&jwt={token}"
+    return render_template_string(
+        IFRAME_TEMPLATE,
+        title="Editar Rúbrica",
+        role="MANTENEDOR",
+        token=token,
+        iframe_url=iframe_url,
+        evalua_url=EVALUA_URL,
+    )
+
+
 @app.route("/dashboard")
 def dashboard():
     """Vista de dashboard — rol ADMINISTRADOR."""
