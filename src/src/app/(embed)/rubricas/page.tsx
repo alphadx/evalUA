@@ -7,7 +7,8 @@
  * scroll-into-view, footer sticky, datos generales colapsable.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { v4 as uuid } from "uuid";
 import { apiUrl } from "@/lib/api-url";
 
@@ -33,7 +34,7 @@ interface RubricaItem {
   updatedAt: string;
 }
 
-type Vista = "lista" | "crear" | "editar";
+type Vista = "lista" | "crear" | "editar" | "exito";
 
 const NIVELES_DEFAULT = [
   { notaNivel: 1, etiqueta: "Muy deficiente" },
@@ -65,11 +66,15 @@ function descriptorBadgeClass(nota: number): string {
   return "danger";
 }
 
-export default function RubricasPage() {
+function RubricasPageContent() {
+  const searchParams = useSearchParams();
+  const modeParam = searchParams.get("mode"); // "crear" | null
+
   const [rubricas, setRubricas] = useState<RubricaItem[]>([]);
-  const [vista, setVista] = useState<Vista>("lista");
+  const [vista, setVista] = useState<Vista>(modeParam === "crear" ? "crear" : "lista");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [rubricaCreadaId, setRubricaCreadaId] = useState<string | null>(null);
   const [titulo, setTitulo] = useState("");
   const [notaAprobacion, setNotaAprobacion] = useState(4.0);
   const [exigencia, setExigencia] = useState(0.5);
@@ -96,8 +101,14 @@ export default function RubricasPage() {
 
   const headers = { Authorization: "Bearer dev-token", "Content-Type": "application/json" };
 
+  // Si mode=crear, inicializar el formulario directamente sin cargar la lista
   useEffect(() => {
-    cargarRubricas();
+    if (modeParam === "crear") {
+      handleCrearInit();
+    } else {
+      cargarRubricas();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const cargarRubricas = async () => {
@@ -112,7 +123,7 @@ export default function RubricasPage() {
     setLoading(false);
   };
 
-  const handleCrear = () => {
+  const handleCrearInit = () => {
     setVista("crear");
     setTitulo("");
     setNotaAprobacion(4.0);
@@ -131,6 +142,10 @@ export default function RubricasPage() {
     ]);
     setCriterioActivoIdx(0);
     setDatosGeneralesAbierto(true);
+  };
+
+  const handleCrear = () => {
+    handleCrearInit();
   };
 
   const handleEditar = (rubrica: RubricaItem) => {
@@ -218,8 +233,6 @@ export default function RubricasPage() {
       const res = await fetch(url, { method, headers, body: JSON.stringify(body) });
       const data = await res.json();
       if (data.success) {
-        setVista("lista");
-        await cargarRubricas();
         if (data.data?._id) {
           window.parent.postMessage(
             {
@@ -230,6 +243,13 @@ export default function RubricasPage() {
             },
             "*"
           );
+        }
+        if (modeParam === "crear") {
+          setRubricaCreadaId(data.data?._id || null);
+          setVista("exito");
+        } else {
+          setVista("lista");
+          await cargarRubricas();
         }
       } else {
         setError(data.error?.detail || "Error guardando rúbrica");
@@ -790,6 +810,60 @@ export default function RubricasPage() {
     );
   }
 
+  // ─── Vista Éxito ───
+  if (vista === "exito") {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4">
+        <div className="text-center space-y-4 px-8">
+          <div
+            className="mx-auto flex h-16 w-16 items-center justify-center rounded-full"
+            style={{ backgroundColor: "rgba(25,135,84,0.1)" }}
+          >
+            <span
+              className="text-2xl font-bold"
+              style={{ color: "var(--color-evalUA21)" }}
+            >
+              ✓
+            </span>
+          </div>
+          <h2
+            className="text-xl font-bold"
+            style={{ color: "var(--color-evalUA2)" }}
+          >
+            Rúbrica Creada
+          </h2>
+          {rubricaCreadaId && (
+            <div className="flex items-center justify-center gap-1.5">
+              <span className="text-xs" style={{ color: "rgba(57,64,73,0.5)" }}>ID:</span>
+              <code
+                className="text-[10px] px-2 py-0.5 rounded font-mono"
+                style={{ backgroundColor: "rgba(57,64,73,0.06)", color: "var(--color-evalUA2)" }}
+              >
+                {rubricaCreadaId}
+              </code>
+            </div>
+          )}
+          <p
+            className="text-xs"
+            style={{ color: "rgba(57,64,73,0.5)" }}
+          >
+            La rúbrica ha sido registrada exitosamente.
+            <br />
+            El sistema host ha sido notificado.
+          </p>
+          <div className="pt-1">
+            <code
+              className="text-[9px] px-3 py-1 rounded"
+              style={{ color: "rgba(57,64,73,0.4)", backgroundColor: "rgba(57,64,73,0.05)" }}
+            >
+              postMessage(&#123; type: "evalua.rubrica.created" &#125;)
+            </code>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ─── Vista Lista ───
   return (
     <div className="flex flex-col h-full">
@@ -946,5 +1020,19 @@ export default function RubricasPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function RubricasPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center h-full">
+          <span className="text-xs" style={{ color: "rgba(57,64,73,0.5)" }}>Cargando...</span>
+        </div>
+      }
+    >
+      <RubricasPageContent />
+    </Suspense>
   );
 }

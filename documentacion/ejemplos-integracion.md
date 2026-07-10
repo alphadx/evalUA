@@ -160,6 +160,27 @@ def rubricas():
     )
 
 
+@app.route("/crear-rubrica")
+def crear_rubrica():
+    """Crear rúbrica directo (sin índice) — rol MANTENEDOR."""
+    token = generate_jwt({
+        "rol": "MANTENEDOR",
+        "usuario_id": "mantenedor.demo",
+        "rubricas_permitidas": ["*"],
+    })
+
+    # mode=crear abre el formulario directamente, sin pasar por la lista
+    iframe_url = f"{EVALUA_URL}/rubricas?mode=crear&jwt={token}"
+    return render_template_string(
+        IFRAME_TEMPLATE,
+        title="Crear Rúbrica",
+        role="MANTENEDOR",
+        token=token,
+        iframe_url=iframe_url,
+        evalua_url=EVALUA_URL,
+    )
+
+
 @app.route("/dashboard")
 def dashboard():
     """Vista de dashboard — rol ADMINISTRADOR."""
@@ -877,6 +898,18 @@ app.get('/rubricas', (req, res) => {
 
   const iframeUrl = `${EVALUA_URL}/rubricas?jwt=${token}`;
   res.send(getIframeHtml('Rúbricas', 'MANTENEDOR', iframeUrl, EVALUA_URL));
+});
+
+app.get('/crear-rubrica', (req, res) => {
+  const token = generateJwt({
+    rol: 'MANTENEDOR',
+    usuario_id: 'mantenedor.demo',
+    rubricas_permitidas: ['*'],
+  });
+
+  // mode=crear abre el formulario directamente, sin pasar por la lista
+  const iframeUrl = `${EVALUA_URL}/rubricas?mode=crear&jwt=${token}`;
+  res.send(getIframeHtml('Crear Rúbrica', 'MANTENEDOR', iframeUrl, EVALUA_URL));
 });
 
 app.get('/dashboard', (req, res) => {

@@ -70,7 +70,9 @@ Cada vista de EvalUA tiene una ruta específica que se accede mediante el iframe
 | Ruta | Rol | Descripción |
 |------|-----|-------------|
 | `/evaluar?jwt=TOKEN` | PROFESOR | Wizard de evaluación paso a paso |
-| `/rubricas?jwt=TOKEN` | MANTENEDOR, ADMINISTRADOR | Gestión de rúbricas |
+| `/rubricas?jwt=TOKEN` | MANTENEDOR, ADMINISTRADOR | Gestión de rúbricas (vista índice) |
+| `/rubricas?mode=crear&jwt=TOKEN` | MANTENEDOR, ADMINISTRADOR | Crear nueva rúbrica directamente (salta el índice) |
+| `/ver-rubrica?jwt=TOKEN` | MANTENEDOR, ADMINISTRADOR | Ver rúbrica en formato matriz |
 | `/dashboard?jwt=TOKEN` | ADMINISTRADOR, MANTENEDOR | Métricas y estadísticas |
 | `/resultado?jwt=TOKEN` | ALUMNO | Ver resultado de evaluación |
 | `/configurar?jwt=TOKEN` | ADMINISTRADOR | Configuración del sistema |
@@ -216,15 +218,75 @@ window.addEventListener('message', (event) => {
 });
 ```
 
-### Tipos de mensajes
+### Tipos de mensajes (v3.0)
 
-| Tipo | Data | Cuándo se envía |
-|------|------|-----------------|
-| `EVALUA_READY` | `{ version: "3.0" }` | Iframe cargado y JWT verificado |
-| `EVALUA_EVALUACION_GUARDADA` | `{ evaluacionId, estado }` | Auto-save completado |
-| `EVALUA_EVALUACION_COMPLETADA` | `{ evaluacionId, notaFinal, aprobada }` | Cálculo final completado |
-| `EVALUA_RUBRICA_CREADA` | `{ rubricaId, titulo }` | Nueva rúbrica creada |
-| `EVALUA_ERROR` | `{ code, message }` | Error durante el proceso |
+| Tipo | Payload | Cuándo se envía |
+|------|---------|-----------------|
+| `evalua.evaluation.completed` | `{ evaluacionId, status }` | Evaluación finalizada y calculada |
+| `evalua.rubrica.created` | `{ rubricaId }` | Nueva rúbrica creada |
+
+**Formato del mensaje:**
+```javascript
+{
+  source: "evalua",
+  version: "3.0",
+  type: "evalua.rubrica.created",   // o "evalua.evaluation.completed"
+  payload: { rubricaId: "abc123" }   // varía según el tipo
+}
+```
+
+### Flujo 4: Crear rúbrica directo (sin índice)
+
+El Host puede abrir el iframe directamente en modo creación, saltando la vista de lista. Al terminar, EvalUA muestra una pantalla de éxito y envía un `postMessage` con el ID de la rúbrica creada. **El Host controla la navegación posterior.**
+
+**URL:**
+```
+http://evalua:3000/rubricas?mode=crear&jwt=<TOKEN>
+```
+
+````
+┌─────────────────────────────────────────────────────────────────┐
+│ HOST (LMS)                                                      │
+│                                                                 │
+│ 1. Mantenedor/Admin hace clic en "Nueva Rúbrica"               │
+│ 2. El Host genera JWT:                                          │
+│    { rol: "MANTENEDOR", usuario_id: "mant.789",                │
+│      rubricas_permitidas: ["*"] }                              │
+│ 3. El Host construye URL con `mode=crear`:                      │
+│    http://evalua:3000/rubricas?mode=crear&jwt=<TOKEN>          │
+│ 4. El Host embebe iframe (modal o página dedicada)             │
+└─────────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ EVALUA (iframe)                                                 │
+│                                                                 │
+│ 5. Detecta mode=crear → abre formulario directamente           │
+│ 6. Usuario completa rúbrica y hace clic en "Guardar"           │
+│ 7. POST /api/rubricas con los datos                            │
+│ 8. Muestra pantalla de éxito con ID de la rúbrica              │
+│ 9. Envía postMessage:                                          │
+│    { type: "evalua.rubrica.created",                           │
+│      payload: { rubricaId: "..." } }                           │
+│ 10. NO vuelve al índice — el Host controla el cierre          │
+└─────────────────────────────────────────────────────────────────┘
+````
+
+**Ejemplo de listener en el Host:**
+```javascript
+window.addEventListener('message', (event) => {
+  if (event.origin !== 'http://localhost:3000') return;
+
+  if (event.data.type === 'evalua.rubrica.created') {
+    const { rubricaId } = event.data.payload;
+    console.log('Rúbrica creada:', rubricaId);
+
+    // El Host controla qué hacer: cerrar modal, redirigir, etc.
+    cerrarModalRubrica();
+    // o: refrescarListaRubricas();
+  }
+});
+```
 
 ---
 
